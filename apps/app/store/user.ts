@@ -5,6 +5,11 @@ import UserService from "services/user.service";
 // interfaces
 import { ICurrentUser, ICurrentUserSettings } from "types/users";
 
+export interface IUserStore {
+  currentUser: ICurrentUser | null;
+  currentUserSettings: ICurrentUserSettings | null;
+}
+
 class UserStore {
   currentUser: ICurrentUser | null = null;
   currentUserSettings: ICurrentUserSettings | null = null;

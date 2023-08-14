@@ -2,20 +2,16 @@
 import Head from "next/head";
 import dynamic from "next/dynamic";
 import Router from "next/router";
-
 // themes
 import { ThemeProvider } from "next-themes";
-
 // styles
 import "styles/globals.css";
 import "styles/editor.css";
 import "styles/command-pallette.css";
 import "styles/nprogress.css";
 import "styles/react-datepicker.css";
-
 // nprogress
 import NProgress from "nprogress";
-
 // contexts
 import { UserProvider } from "contexts/user.context";
 import { ToastContextProvider } from "contexts/toast.context";

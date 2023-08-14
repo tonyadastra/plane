@@ -5,6 +5,11 @@ import { applyTheme, unsetCustomCssVariables } from "helpers/theme.helper";
 // interfaces
 import { ICurrentUserSettings } from "types";
 
+export interface IThemeStore {
+  sidebarCollapsed: boolean | null;
+  theme: string | null;
+}
+
 class ThemeStore {
   sidebarCollapsed: boolean | null = null;
   theme: string | null = null;

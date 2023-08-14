@@ -1,8 +1,6 @@
 import { Fragment } from "react";
-
 import { useRouter } from "next/router";
 import Link from "next/link";
-
 // headless ui
 import { Menu, Transition } from "@headlessui/react";
 // next-themes
@@ -25,6 +23,7 @@ import { truncateText } from "helpers/string.helper";
 import { IWorkspace } from "types";
 // mobx store
 import { useMobxStore } from "lib/mobx/store-provider";
+import { IRootStore } from "store/root";
 
 // Static Data
 const userLinks = (workspaceSlug: string, userId: string) => [
@@ -56,7 +55,7 @@ const profileLinks = (workspaceSlug: string, userId: string) => [
 ];
 
 export const WorkspaceSidebarDropdown = () => {
-  const store: any = useMobxStore();
+  const { theme: themeStore, workspace: workspaceStore }: IRootStore = useMobxStore();
 
   const router = useRouter();
   const { workspaceSlug } = router.query;
@@ -112,7 +111,7 @@ export const WorkspaceSidebarDropdown = () => {
         <Menu.Button className="text-custom-sidebar-text-200 flex w-full items-center rounded-sm text-sm font-medium focus:outline-none">
           <div
             className={`flex w-full items-center gap-x-2 rounded-sm bg-custom-sidebar-background-80 p-1 ${
-              store?.theme?.sidebarCollapsed ? "justify-center" : ""
+              themeStore?.sidebarCollapsed ? "justify-center" : ""
             }`}
           >
             <div className="relative grid h-6 w-6 place-items-center rounded bg-gray-700 uppercase text-white">
@@ -127,7 +126,7 @@ export const WorkspaceSidebarDropdown = () => {
               )}
             </div>
 
-            {!store?.theme?.sidebarCollapsed && (
+            {!themeStore?.sidebarCollapsed && (
               <h4 className="text-custom-text-100">
                 {activeWorkspace?.name ? truncateText(activeWorkspace.name, 14) : "Loading..."}
               </h4>
@@ -150,10 +149,10 @@ export const WorkspaceSidebarDropdown = () => {
           >
             <div className="flex flex-col items-start justify-start gap-3 p-3">
               <span className="text-sm font-medium text-custom-sidebar-text-200">Workspace</span>
-              {workspaces ? (
+              {workspaceStore?.list ? (
                 <div className="flex h-full w-full flex-col items-start justify-start gap-1.5">
-                  {workspaces.length > 0 ? (
-                    workspaces.map((workspace) => (
+                  {workspaceStore?.list.length > 0 ? (
+                    workspaceStore?.list?.map((workspace: IWorkspace) => (
                       <Menu.Item key={workspace.id}>
                         {({ active }) => (
                           <button
@@ -244,7 +243,7 @@ export const WorkspaceSidebarDropdown = () => {
         </Transition>
       </Menu>
 
-      {!store?.theme?.sidebarCollapsed && (
+      {!themeStore?.sidebarCollapsed && (
         <Menu as="div" className="relative flex-shrink-0">
           <Menu.Button className="grid place-items-center outline-none">
             <Avatar user={user} height="28px" width="28px" fontSize="14px" />

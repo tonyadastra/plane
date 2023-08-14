@@ -1,10 +1,14 @@
 import { createContext, useContext } from "react";
 // mobx store
-import { RootStore } from "store/root";
+import { IRootStore, RootStore } from "store/root";
 
-let rootStore: any = null;
+let rootStore: IRootStore = {
+  workspace: null,
+  theme: null,
+  user: null,
+};
 
-export const MobxStoreContext = createContext(null);
+export const MobxStoreContext = createContext(rootStore);
 
 const initializeStore = () => {
   const _rootStore = rootStore ?? new RootStore();
