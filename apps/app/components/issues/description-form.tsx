@@ -1,23 +1,15 @@
 import { FC, useCallback, useEffect, useState } from "react";
 
-import dynamic from "next/dynamic";
-
 // react-hook-form
 import { Controller, useForm } from "react-hook-form";
 // hooks
 import useReloadConfirmations from "hooks/use-reload-confirmation";
 // components
-import { Loader, TextArea } from "components/ui";
-const RemirrorRichTextEditor = dynamic(() => import("components/rich-text-editor"), {
-  ssr: false,
-  loading: () => (
-    <Loader>
-      <Loader.Item height="12rem" width="100%" />
-    </Loader>
-  ),
-});
+import { TextArea } from "components/ui";
+
 // types
 import { IIssue } from "types";
+import Tiptap from "components/tiptap";
 
 export interface IssueDescriptionFormValues {
   name: string;
@@ -63,7 +55,8 @@ export const IssueDescriptionForm: FC<IssueDetailsProps> = ({
 
   const handleDescriptionFormSubmit = useCallback(
     async (formData: Partial<IIssue>) => {
-      if (!formData.name || formData.name.length === 0 || formData.name.length > 255) return;
+      // console.log("formdata", formData)
+      if (!formData?.name || formData?.name.length === 0 || formData?.name.length > 255) return;
 
       await handleFormSubmit({
         name: formData.name ?? "",
@@ -119,13 +112,13 @@ export const IssueDescriptionForm: FC<IssueDetailsProps> = ({
       <span>{errors.name ? errors.name.message : null}</span>
       <div className="relative">
         <Controller
-          name="description"
+          name="description_html"
           control={control}
-          render={({ field: { value } }) => {
+          render={({ field: { value, onChange } }) => {
             if (!value && !watch("description_html")) return <></>;
 
             return (
-              <RemirrorRichTextEditor
+              <Tiptap
                 value={
                   !value ||
                   value === "" ||
@@ -133,31 +126,23 @@ export const IssueDescriptionForm: FC<IssueDetailsProps> = ({
                     ? watch("description_html")
                     : value
                 }
-                onJSONChange={(jsonValue) => {
-                  setShowAlert(true);
-                  setValue("description", jsonValue);
-                }}
-                onHTMLChange={(htmlValue) => {
-                  setShowAlert(true);
-                  setValue("description_html", htmlValue);
-                }}
-                onBlur={() => {
+                debouncedUpdatesEnabled={true}
+                setIsSubmitting={setIsSubmitting}
+                customClassName="min-h-[150px]"
+                editorContentCustomClassNames="pb-9"
+                onChange={(description: Object, description_html: string) => {
                   setIsSubmitting(true);
-                  handleSubmit(handleDescriptionFormSubmit)()
-                    .then(() => setShowAlert(false))
-                    .finally(() => setIsSubmitting(false));
+                  onChange(description_html);
+                  setValue("description", description);
+                  handleSubmit(handleDescriptionFormSubmit)().finally(() => setIsSubmitting(false));
                 }}
-                placeholder="Description"
-                editable={isAllowed}
               />
             );
           }}
         />
-        {isSubmitting && (
-          <div className="absolute bottom-1 right-1 text-xs text-custom-text-200 bg-custom-background-100 p-3 z-10">
-            Saving...
-          </div>
-        )}
+        <div className="absolute right-5 bottom-5 text-xs text-custom-text-200 border border-custom-border-400 rounded-xl w-[6.5rem] py-1 z-10 flex items-center justify-center">
+          {isSubmitting ? "Saving..." : "Saved"}
+        </div>
       </div>
     </div>
   );
