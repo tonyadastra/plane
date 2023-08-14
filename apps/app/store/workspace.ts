@@ -1,5 +1,5 @@
 // mobx
-import { action, observable, makeObservable } from "mobx";
+import { action, observable, makeObservable, runInAction } from "mobx";
 import workspaceService from "services/workspace.service";
 import { IIssue, IWorkspace } from "types";
 
@@ -29,7 +29,12 @@ class WorkspaceStore {
 
   initialLoad = async () => {
     try {
-      this.list = await workspaceService.userWorkspaces();
+      const response = await workspaceService.userWorkspaces();
+      if (response) {
+        runInAction(() => {
+          this.list = response;
+        });
+      }
     } catch (error) {
       console.log("Failed to load initial workspace data", error);
     }

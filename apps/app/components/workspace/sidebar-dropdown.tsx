@@ -24,6 +24,7 @@ import { IWorkspace } from "types";
 // mobx store
 import { useMobxStore } from "lib/mobx/store-provider";
 import { IRootStore } from "store/root";
+import { observer } from "mobx-react-lite";
 
 // Static Data
 const userLinks = (workspaceSlug: string, userId: string) => [
@@ -54,8 +55,9 @@ const profileLinks = (workspaceSlug: string, userId: string) => [
   },
 ];
 
-export const WorkspaceSidebarDropdown = () => {
+export const WorkspaceSidebarDropdown = observer(() => {
   const { theme: themeStore, workspace: workspaceStore }: IRootStore = useMobxStore();
+  console.log("workspaceStore", workspaceStore);
 
   const router = useRouter();
   const { workspaceSlug } = router.query;
@@ -294,4 +296,4 @@ export const WorkspaceSidebarDropdown = () => {
       )}
     </div>
   );
-};
+});
