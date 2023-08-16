@@ -1,16 +1,10 @@
 import { BubbleMenu, BubbleMenuProps } from "@tiptap/react";
 import { FC, useState } from "react";
-import {
-  BoldIcon,
-  ItalicIcon,
-  UnderlineIcon,
-  StrikethroughIcon,
-  CodeIcon,
-} from "lucide-react";
+import { BoldIcon, ItalicIcon, UnderlineIcon, StrikethroughIcon, CodeIcon } from "lucide-react";
 
 import { NodeSelector } from "./node-selector";
 import { LinkSelector } from "./link-selector";
-import { cn } from "../utils"
+import { cn } from "../utils";
 
 export interface BubbleMenuItem {
   name: string;
@@ -81,7 +75,7 @@ export const EditorBubbleMenu: FC<EditorBubbleMenuProps> = (props) => {
   return (
     <BubbleMenu
       {...bubbleMenuProps}
-      className="flex w-fit divide-x divide-custom-border-400 rounded border border-custom-text-200 bg-custom-background-100 shadow-xl"
+      className="flex w-fit divide-x divide-custom-border-300 rounded border border-custom-border-300 bg-custom-background-100 shadow-xl"
     >
       <NodeSelector
         editor={props.editor}
@@ -104,11 +98,16 @@ export const EditorBubbleMenu: FC<EditorBubbleMenuProps> = (props) => {
           <button
             key={index}
             onClick={item.command}
-            className="p-2 text-custom-text-200 hover:bg-custom-background-100 active:bg-custom-background-100 transition-colors"
+            className={cn(
+              "p-2 text-custom-text-300 hover:bg-custom-primary-100/5 active:bg-custom-primary-100/5 transition-colors",
+              {
+                "text-custom-text-100 bg-custom-primary-100/5": item.isActive(),
+              }
+            )}
           >
             <item.icon
               className={cn("h-4 w-4", {
-                "text-blue-500": item.isActive(),
+                "text-custom-text-100": item.isActive(),
               })}
             />
           </button>

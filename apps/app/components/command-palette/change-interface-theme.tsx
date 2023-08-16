@@ -34,7 +34,7 @@ export const ChangeInterfaceTheme: React.FC<Props> = ({ setIsPaletteOpen }) => {
       return {
         ...prevData,
         theme: {
-          ...prevData.theme,
+          ...prevData?.theme,
           theme: newTheme,
         },
       };

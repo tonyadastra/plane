@@ -1,9 +1,9 @@
 // mobx lite
 import { enableStaticRendering } from "mobx-react-lite";
 // store imports
-import UserStore, { IUserStore } from "./user";
-import ThemeStore, { IThemeStore } from "./theme";
-import WorkspaceStore, { IWorkspaceStore } from "./workspace";
+import UserStore from "./user";
+import ThemeStore from "./theme";
+import ProjectPublishStore, { IProjectPublishStore } from "./project-publish";
 
 const isServer = typeof window === "undefined";
 
@@ -16,13 +16,13 @@ export interface IRootStore {
 }
 
 export class RootStore {
-  user: IUserStore;
-  theme: IThemeStore;
-  workspace: IWorkspaceStore;
+  user;
+  theme;
+  projectPublish: IProjectPublishStore;
 
   constructor() {
     this.user = new UserStore(this);
     this.theme = new ThemeStore(this);
-    this.workspace = new WorkspaceStore(this);
+    this.projectPublish = new ProjectPublishStore(this);
   }
 }

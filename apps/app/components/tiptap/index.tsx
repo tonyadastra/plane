@@ -1,14 +1,14 @@
 // @ts-nocheck
-import { useEditor, EditorContent, Editor } from '@tiptap/react';
-import { useDebouncedCallback } from 'use-debounce';
-import { EditorBubbleMenu } from './bubble-menu';
-import { TiptapExtensions } from './extensions';
-import { TiptapEditorProps } from './props';
+import { useEditor, EditorContent, Editor } from "@tiptap/react";
+import { useDebouncedCallback } from "use-debounce";
+import { EditorBubbleMenu } from "./bubble-menu";
+import { TiptapExtensions } from "./extensions";
+import { TiptapEditorProps } from "./props";
 import { Node } from "@tiptap/pm/model";
 import { Editor as CoreEditor } from "@tiptap/core";
-import { useCallback, useImperativeHandle, useRef } from 'react';
-import { EditorState } from '@tiptap/pm/state';
-import fileService from 'services/file.service';
+import { useCallback, useImperativeHandle, useRef } from "react";
+import { EditorState } from "@tiptap/pm/state";
+import fileService from "services/file.service";
 
 export interface ITiptapRichTextEditor {
   value: string;
@@ -17,7 +17,7 @@ export interface ITiptapRichTextEditor {
   customClassName?: string;
   editorContentCustomClassNames?: string;
   onChange?: (json: any, html: string) => void;
-  setIsSubmitting?: (isSubmitting: boolean) => void;
+  setIsSubmitting?: (isSubmitting: "submitting" | "submitted" | "saved") => void;
   editable?: boolean;
   forwardedRef?: any;
   debouncedUpdatesEnabled?: boolean;
@@ -34,7 +34,7 @@ const Tiptap = (props: ITiptapRichTextEditor) => {
     value,
     noBorder,
     borderOnFocus,
-    customClassName
+    customClassName,
   } = props;
 
   const editor = useEditor({
@@ -44,44 +44,38 @@ const Tiptap = (props: ITiptapRichTextEditor) => {
     content: value,
     onUpdate: async ({ editor }) => {
       // for instant feedback loop
-      setIsSubmitting?.(true);
-      checkForNodeDeletions(editor)
+      setIsSubmitting?.("submitting");
+      checkForNodeDeletions(editor);
       if (debouncedUpdatesEnabled) {
         debouncedUpdates({ onChange, editor });
       } else {
         onChange?.(editor.getJSON(), editor.getHTML());
       }
-    }
+    },
   });
 
-  const editorRef: React.MutableRefObject<Editor | null> = useRef(null)
+  const editorRef: React.MutableRefObject<Editor | null> = useRef(null);
 
   useImperativeHandle(forwardedRef, () => ({
     clearEditor: () => {
-      console.log('clearContent')
-      console.log(editorRef)
-      editorRef.current?.commands.clearContent()
+      editorRef.current?.commands.clearContent();
     },
     setEditorValue: (content: string) => {
-      console.log(editorRef, forwardedRef, content)
-      editorRef.current?.commands.setContent(content)
-    }
-  }))
+      editorRef.current?.commands.setContent(content);
+    },
+  }));
 
   const previousState = useRef<EditorState>();
 
-  const onNodeDeleted = useCallback(
-    async (node: Node) => {
-      if (node.type.name === 'image') {
-        const assetUrlWithWorkspaceId = new URL(node.attrs.src).pathname.substring(1);
-        const resStatus = await fileService.deleteImage(assetUrlWithWorkspaceId);
-        if (resStatus === 204) {
-          console.log("file deleted successfully");
-        }
+  const onNodeDeleted = useCallback(async (node: Node) => {
+    if (node.type.name === "image") {
+      const assetUrlWithWorkspaceId = new URL(node.attrs.src).pathname.substring(1);
+      const resStatus = await fileService.deleteImage(assetUrlWithWorkspaceId);
+      if (resStatus === 204) {
+        console.log("file deleted successfully");
       }
-    },
-    [],
-  );
+    }
+  }, []);
 
   const checkForNodeDeletions = useCallback(
     (editor: CoreEditor) => {
@@ -107,7 +101,7 @@ const Tiptap = (props: ITiptapRichTextEditor) => {
         }
       }
     },
-    [onNodeDeleted],
+    [onNodeDeleted]
   );
 
   const debouncedUpdates = useDebouncedCallback(async ({ onChange, editor }) => {
@@ -118,20 +112,20 @@ const Tiptap = (props: ITiptapRichTextEditor) => {
     }, 500);
   }, 1000);
 
-  const editorClassNames = `mt-2 p-3 relative focus:outline-none rounded-md focus:border-custom-border-200 
-      ${noBorder ? '' : 'border border-custom-border-200'
-    } ${borderOnFocus ? 'focus:border border-custom-border-200' : 'focus:border-0'
-    } ${customClassName}`;
+  const editorClassNames = `relative w-full max-w-screen-lg sm:rounded-lg sm:shadow-lg mt-2 p-3 relative focus:outline-none rounded-md
+      ${noBorder ? "" : "border border-custom-border-200"} ${
+    borderOnFocus ? "focus:border border-custom-border-300" : "focus:border-0"
+  } ${customClassName}`;
 
-  if (!editor) return null
-  editorRef.current = editor
+  if (!editor) return null;
+  editorRef.current = editor;
 
   return (
     <div
       onClick={() => {
         editor?.chain().focus().run();
       }}
-      className={`tiptap-editor-container relative ${editorClassNames}`}
+      className={`tiptap-editor-container ${editorClassNames}`}
     >
       {editor && <EditorBubbleMenu editor={editor} />}
       <div className={`${editorContentCustomClassNames}`}>
