@@ -2,6 +2,7 @@
 import { action, observable, makeObservable, runInAction } from "mobx";
 import workspaceService from "services/workspace.service";
 import { IIssue, IWorkspace } from "types";
+import { IRootStore } from "./root";
 
 export interface IWorkspaceStore {
   list: IWorkspace[];
@@ -9,7 +10,7 @@ export interface IWorkspaceStore {
 
 class WorkspaceStore {
   // root store
-  rootStore;
+  rootStore: IRootStore;
   // values
   list: IWorkspace[] = [];
 
@@ -40,9 +41,20 @@ class WorkspaceStore {
     }
   };
 
-  switchWorkspace() {
-    this.rootStore;
-  }
+  switchWorkspace = async (workspace_id: string) => {
+    try {
+      const response = await this.rootStore?.user?.updateCurrentUser({
+        last_workspace_id: workspace_id,
+      });
+      if (response) {
+        runInAction(() => {
+          this.list = response;
+        });
+      }
+    } catch (error) {
+      console.log("Failed to load initial workspace data", error);
+    }
+  };
 }
 
 export default WorkspaceStore;

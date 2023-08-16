@@ -36,7 +36,6 @@ export interface IUser {
   theme: ICustomTheme;
   updated_at: readonly Date;
   username: string;
-
   [...rest: string]: any;
 }
 

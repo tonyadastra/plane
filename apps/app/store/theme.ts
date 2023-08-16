@@ -3,11 +3,12 @@ import { action, observable, makeObservable } from "mobx";
 // helper
 import { applyTheme, unsetCustomCssVariables } from "helpers/theme.helper";
 // interfaces
-import { ICurrentUserSettings } from "types";
+import { ICurrentUserSettings, ICustomTheme } from "types";
 
 export interface IThemeStore {
   sidebarCollapsed: boolean | null;
   theme: string | null;
+  setTheme: (theme: any) => void;
 }
 
 class ThemeStore {

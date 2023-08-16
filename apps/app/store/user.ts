@@ -3,29 +3,26 @@ import { action, observable, computed, runInAction, makeObservable } from "mobx"
 // services
 import UserService from "services/user.service";
 // interfaces
-import { ICurrentUser, ICurrentUserSettings } from "types/users";
+import { ICurrentUser, ICurrentUserSettings, IUser } from "types/users";
+import { IRootStore } from "./root";
 
 export interface IUserStore {
-  currentUser: ICurrentUser | null;
-  currentUserSettings: ICurrentUserSettings | null;
+  currentUser: Partial<IUser> | null;
+  updateCurrentUser: (user: any) => void;
 }
 
 class UserStore {
-  currentUser: ICurrentUser | null = null;
-  currentUserSettings: ICurrentUserSettings | null = null;
+  currentUser: Partial<IUser> | null = null;
   // root store
-  rootStore;
+  rootStore: IRootStore;
 
-  constructor(_rootStore: any) {
+  constructor(_rootStore: IRootStore) {
     makeObservable(this, {
       // observable
       currentUser: observable.ref,
-      currentUserSettings: observable.ref,
       // action
       setCurrentUser: action,
-      setCurrentUserSettings: action,
       updateCurrentUser: action,
-      updateCurrentUserSettings: action,
       // computed
     });
     this.rootStore = _rootStore;
@@ -34,11 +31,11 @@ class UserStore {
 
   setCurrentUser = async () => {
     try {
-      let userResponse: ICurrentUser | null = await UserService.currentUser();
+      let userResponse: IUser | null = await UserService.currentUser();
       userResponse = userResponse || null;
 
       if (userResponse) {
-        const userPayload: ICurrentUser = {
+        const userPayload = {
           id: userResponse?.id,
           avatar: userResponse?.avatar,
           first_name: userResponse?.first_name,
@@ -61,26 +58,7 @@ class UserStore {
     }
   };
 
-  setCurrentUserSettings = async () => {
-    try {
-      let userSettingsResponse: ICurrentUserSettings | null = await UserService.currentUser();
-      userSettingsResponse = userSettingsResponse || null;
-
-      if (userSettingsResponse) {
-        const themePayload = {
-          theme: { ...userSettingsResponse?.theme },
-        };
-        runInAction(() => {
-          this.currentUserSettings = themePayload;
-          this.rootStore.theme.setTheme(themePayload);
-        });
-      }
-    } catch (error) {
-      console.error("Fetching current user error", error);
-    }
-  };
-
-  updateCurrentUser = async (user: ICurrentUser) => {
+  updateCurrentUser = async (user: any) => {
     try {
       let userResponse: ICurrentUser = await UserService.updateUser(user);
       userResponse = userResponse || null;
@@ -107,26 +85,6 @@ class UserStore {
       }
     } catch (error) {
       console.error("Updating user error", error);
-      return error;
-    }
-  };
-
-  updateCurrentUserSettings = async (userTheme: ICurrentUserSettings) => {
-    try {
-      let userSettingsResponse: ICurrentUserSettings = await UserService.updateUser(userTheme);
-      userSettingsResponse = userSettingsResponse || null;
-      if (userSettingsResponse) {
-        const themePayload = {
-          theme: { ...userSettingsResponse?.theme },
-        };
-        runInAction(() => {
-          this.currentUserSettings = themePayload;
-          this.rootStore.theme.setTheme(themePayload);
-        });
-        return themePayload;
-      }
-    } catch (error) {
-      console.error("Updating user settings error", error);
       return error;
     }
   };

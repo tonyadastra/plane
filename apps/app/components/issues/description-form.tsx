@@ -10,10 +10,7 @@ import { TextArea } from "components/ui";
 // types
 import { IIssue } from "types";
 import Tiptap from "components/tiptap";
-<<<<<<< HEAD
-=======
 import { useDebouncedCallback } from "use-debounce";
->>>>>>> 2b6debaa3ee4adfc11010d373954f7e68bb54b1d
 
 export interface IssueDescriptionFormValues {
   name: string;
@@ -59,10 +56,6 @@ export const IssueDescriptionForm: FC<IssueDetailsProps> = ({
 
   const handleDescriptionFormSubmit = useCallback(
     async (formData: Partial<IIssue>) => {
-<<<<<<< HEAD
-      // console.log("formdata", formData)
-=======
->>>>>>> 2b6debaa3ee4adfc11010d373954f7e68bb54b1d
       if (!formData?.name || formData?.name.length === 0 || formData?.name.length > 255) return;
 
       await handleFormSubmit({
@@ -119,8 +112,9 @@ export const IssueDescriptionForm: FC<IssueDetailsProps> = ({
         {characterLimit && (
           <div className="pointer-events-none absolute bottom-1 right-1 z-[2] rounded bg-custom-background-100 text-custom-text-200 p-0.5 text-xs">
             <span
-              className={`${watch("name").length === 0 || watch("name").length > 255 ? "text-red-500" : ""
-                }`}
+              className={`${
+                watch("name").length === 0 || watch("name").length > 255 ? "text-red-500" : ""
+              }`}
             >
               {watch("name").length}
             </span>
@@ -140,8 +134,8 @@ export const IssueDescriptionForm: FC<IssueDetailsProps> = ({
               <Tiptap
                 value={
                   !value ||
-                    value === "" ||
-                    (typeof value === "object" && Object.keys(value).length === 0)
+                  value === "" ||
+                  (typeof value === "object" && Object.keys(value).length === 0)
                     ? watch("description_html")
                     : value
                 }
@@ -161,13 +155,12 @@ export const IssueDescriptionForm: FC<IssueDetailsProps> = ({
             );
           }}
         />
-<<<<<<< HEAD
-        <div className="absolute right-5 bottom-5 text-xs text-custom-text-200 border border-custom-border-400 rounded-xl w-[6.5rem] py-1 z-10 flex items-center justify-center">
-          {isSubmitting ? "Saving..." : "Saved"}
-=======
-        <div className={`absolute right-5 bottom-5 text-xs text-custom-text-200 border border-custom-border-400 rounded-xl w-[6.5rem] py-1 z-10 flex items-center justify-center ${isSubmitting === 'saved' ? 'fadeOut' : 'fadeIn'}`}>
-          {isSubmitting === 'submitting' ? 'Saving...' : 'Saved'}
->>>>>>> 2b6debaa3ee4adfc11010d373954f7e68bb54b1d
+        <div
+          className={`absolute right-5 bottom-5 text-xs text-custom-text-200 border border-custom-border-400 rounded-xl w-[6.5rem] py-1 z-10 flex items-center justify-center ${
+            isSubmitting === "saved" ? "fadeOut" : "fadeIn"
+          }`}
+        >
+          {isSubmitting === "submitting" ? "Saving..." : "Saved"}
         </div>
       </div>
     </div>
