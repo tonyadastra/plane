@@ -6,6 +6,8 @@ import { IRootStore } from "./root";
 
 export interface IWorkspaceStore {
   list: IWorkspace[];
+  activeWorkspace: IWorkspace | null;
+  switchWorkspace: (workspace_id: string) => void;
 }
 
 class WorkspaceStore {
@@ -13,8 +15,9 @@ class WorkspaceStore {
   rootStore: IRootStore;
   // values
   list: IWorkspace[] = [];
+  activeWorkspace: IWorkspace | null = null;
 
-  constructor(_rootStore: any | null = null) {
+  constructor(_rootStore: IRootStore) {
     makeObservable(this, {
       // observable
       list: observable,
@@ -31,9 +34,13 @@ class WorkspaceStore {
   initialLoad = async () => {
     try {
       const response = await workspaceService.userWorkspaces();
+      const activeWorkspace =
+        response?.find((w) => w.slug === this.rootStore.user?.currentUser?.last_workspace_slug) ||
+        null;
       if (response) {
         runInAction(() => {
           this.list = response;
+          this.activeWorkspace = activeWorkspace;
         });
       }
     } catch (error) {
@@ -43,14 +50,12 @@ class WorkspaceStore {
 
   switchWorkspace = async (workspace_id: string) => {
     try {
-      const response = await this.rootStore?.user?.updateCurrentUser({
-        last_workspace_id: workspace_id,
-      });
-      if (response) {
-        runInAction(() => {
-          this.list = response;
+      runInAction(() => {
+        this.rootStore?.user?.updateCurrentUser({
+          last_workspace_id: workspace_id,
         });
-      }
+        this.activeWorkspace = this.rootStore.user?.currentUser?.last_workspace_id;
+      });
     } catch (error) {
       console.log("Failed to load initial workspace data", error);
     }

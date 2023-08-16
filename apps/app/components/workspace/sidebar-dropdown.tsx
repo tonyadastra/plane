@@ -64,30 +64,21 @@ export const WorkspaceSidebarDropdown = observer(() => {
 
   const { user, mutateUser } = useUser();
 
-  const { collapsed: sidebarCollapse } = useThemeHook();
-
   const { setTheme } = useTheme();
 
   const { setToastAlert } = useToast();
 
-  const { activeWorkspace, workspaces } = useWorkspaces();
-
   const handleWorkspaceNavigation = (workspace: IWorkspace) => {
-    userService
-      .updateUser({
-        last_workspace_id: workspace?.id,
-      })
-      .then(() => {
-        mutateUser();
-        router.push(`/${workspace.slug}/`);
-      })
-      .catch(() =>
-        setToastAlert({
-          type: "error",
-          title: "Error!",
-          message: "Failed to navigate to the workspace. Please try again.",
-        })
-      );
+    if (workspace?.id) {
+      workspaceStore.switchWorkspace(workspace?.id);
+      router.push(`/${workspace.slug}/`);
+    } else {
+      setToastAlert({
+        type: "error",
+        title: "Error!",
+        message: "Failed to navigate to the workspace. Please try again.",
+      });
+    }
   };
 
   const handleSignOut = async () => {
@@ -117,20 +108,23 @@ export const WorkspaceSidebarDropdown = observer(() => {
             }`}
           >
             <div className="relative grid h-6 w-6 place-items-center rounded bg-gray-700 uppercase text-white">
-              {activeWorkspace?.logo && activeWorkspace.logo !== "" ? (
+              {workspaceStore.activeWorkspace?.logo &&
+              workspaceStore.activeWorkspace.logo !== "" ? (
                 <img
-                  src={activeWorkspace.logo}
+                  src={workspaceStore.activeWorkspace.logo}
                   className="absolute top-0 left-0 h-full w-full object-cover rounded"
                   alt="Workspace Logo"
                 />
               ) : (
-                activeWorkspace?.name?.charAt(0) ?? "..."
+                workspaceStore.activeWorkspace?.name?.charAt(0) ?? "..."
               )}
             </div>
 
             {!themeStore?.sidebarCollapsed && (
               <h4 className="text-custom-text-100">
-                {activeWorkspace?.name ? truncateText(activeWorkspace.name, 14) : "Loading..."}
+                {workspaceStore.activeWorkspace?.name
+                  ? truncateText(workspaceStore.activeWorkspace.name, 14)
+                  : "Loading..."}
               </h4>
             )}
           </div>
@@ -186,7 +180,9 @@ export const WorkspaceSidebarDropdown = observer(() => {
                             <span className="p-1">
                               <CheckIcon
                                 className={`h-3 w-3.5 text-custom-sidebar-text-100 ${
-                                  workspace.id === activeWorkspace?.id ? "opacity-100" : "opacity-0"
+                                  workspace.id === workspaceStore.activeWorkspace?.id
+                                    ? "opacity-100"
+                                    : "opacity-0"
                                 }`}
                               />
                             </span>
