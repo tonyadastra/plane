@@ -4,18 +4,20 @@ import { action, observable, makeObservable } from "mobx";
 import { applyTheme, unsetCustomCssVariables } from "helpers/theme.helper";
 // interfaces
 import { ICurrentUserSettings, ICustomTheme } from "types";
+import { IRootStore } from "./root";
 
 export interface IThemeStore {
   sidebarCollapsed: boolean | null;
   theme: string | null;
   setTheme: (theme: any) => void;
+  toggleSidebarCollapse: () => void;
 }
 
 class ThemeStore {
   sidebarCollapsed: boolean | null = null;
   theme: string | null = null;
   // root store
-  rootStore;
+  rootStore: IRootStore;
 
   constructor(_rootStore: any | null = null) {
     makeObservable(this, {
@@ -23,7 +25,7 @@ class ThemeStore {
       sidebarCollapsed: observable,
       theme: observable,
       // action
-      setSidebarCollapsed: action,
+      toggleSidebarCollapse: action,
       setTheme: action,
       // computed
     });
@@ -32,15 +34,15 @@ class ThemeStore {
     this.initialLoad();
   }
 
-  setSidebarCollapsed(collapsed: boolean | null = null) {
-    if (collapsed === null) {
+  toggleSidebarCollapse() {
+    if (this.sidebarCollapsed === null) {
       let _sidebarCollapsed: string | boolean | null =
         localStorage.getItem("app_sidebar_collapsed");
       _sidebarCollapsed = _sidebarCollapsed ? (_sidebarCollapsed === "true" ? true : false) : false;
       this.sidebarCollapsed = _sidebarCollapsed;
     } else {
-      this.sidebarCollapsed = collapsed;
-      localStorage.setItem("app_sidebar_collapsed", collapsed.toString());
+      this.sidebarCollapsed = !this.sidebarCollapsed;
+      localStorage.setItem("app_sidebar_collapsed", this.sidebarCollapsed.toString());
     }
   }
 
@@ -55,13 +57,15 @@ class ThemeStore {
 
       // applying the theme to platform if the selected theme is custom
       if (currentTheme === "custom") {
-        const themeSettings = this.rootStore.user.currentUserSettings || null;
-        applyTheme(
-          themeSettings?.theme?.palette !== ",,,,"
-            ? themeSettings?.theme?.palette
-            : "#0d101b,#c5c5c5,#3f76ff,#0d101b,#c5c5c5",
-          themeSettings?.theme?.darkPalette
-        );
+        const themeSettings = this.rootStore.user?.currentUser || null;
+        if (themeSettings?.theme?.palette) {
+          applyTheme(
+            themeSettings?.theme?.palette !== ",,,,"
+              ? themeSettings?.theme?.palette
+              : "#0d101b,#c5c5c5,#3f76ff,#0d101b,#c5c5c5",
+            themeSettings?.theme?.darkPalette
+          );
+        }
       } else unsetCustomCssVariables();
     } catch (error) {
       console.error("setting user theme error", error);

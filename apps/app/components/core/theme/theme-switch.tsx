@@ -22,7 +22,7 @@ type Props = {
 
 export const ThemeSwitch: React.FC<Props> = observer(
   ({ setPreLoadedData, customThemeSelectorOptions, setCustomThemeSelectorOptions }) => {
-    const store: any = useMobxStore();
+    const { user: userStore } = useMobxStore();
 
     const { user, mutateUser } = useUser();
     const { theme, setTheme } = useTheme();
@@ -30,10 +30,7 @@ export const ThemeSwitch: React.FC<Props> = observer(
     const updateUserTheme = (newTheme: string) => {
       if (!user) return;
       setTheme(newTheme);
-      return store.user
-        .updateCurrentUserSettings({ theme: { ...user.theme, theme: newTheme } })
-        .then((response: any) => response)
-        .catch((error: any) => error);
+      return userStore.updateCurrentUser({ theme: { ...user.theme, theme: newTheme } });
     };
 
     const currentThemeObj = THEMES_OBJ.find((t) => t.value === theme);

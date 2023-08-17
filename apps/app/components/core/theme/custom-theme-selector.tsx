@@ -30,7 +30,7 @@ const defaultValues: ICustomTheme = {
 };
 
 export const CustomThemeSelector: React.FC<Props> = observer(({ preLoadedData }) => {
-  const store: any = useMobxStore();
+  const { user: userStore } = useMobxStore();
   const { setTheme } = useTheme();
 
   const [darkPalette, setDarkPalette] = useState(false);
@@ -62,13 +62,8 @@ export const CustomThemeSelector: React.FC<Props> = observer(({ preLoadedData })
       palette: `${formData.background},${formData.text},${formData.primary},${formData.sidebarBackground},${formData.sidebarText}`,
       theme: "custom",
     };
-
     setTheme("custom");
-
-    return store.user
-      .updateCurrentUserSettings({ theme: payload })
-      .then((response: any) => response)
-      .catch((error: any) => error);
+    return userStore.updateCurrentUser({ theme: payload });
   };
 
   return (
