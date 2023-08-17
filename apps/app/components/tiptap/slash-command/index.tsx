@@ -285,8 +285,6 @@ const renderItems = () => {
   let component: ReactRenderer | null = null;
   let popup: any | null = null;
 
-  const container = document.querySelector("#tiptap-container") as HTMLElement;
-
   return {
     onStart: (props: { editor: Editor; clientRect: DOMRect }) => {
       component = new ReactRenderer(CommandList, {
@@ -297,7 +295,7 @@ const renderItems = () => {
       // @ts-ignore
       popup = tippy("body", {
         getReferenceClientRect: props.clientRect,
-        appendTo: () => container,
+        appendTo: () => document.querySelector("#tiptap-container"),
         content: component.element,
         showOnCreate: true,
         interactive: true,
