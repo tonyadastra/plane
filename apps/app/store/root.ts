@@ -7,13 +7,13 @@ import ProjectPublishStore, { IProjectPublishStore } from "./project-publish";
 import WorkspaceStore, { IWorkspaceStore } from "./workspace";
 
 const isServer = typeof window === "undefined";
-
 enableStaticRendering(isServer);
 
 export interface IRootStore {
-  user: IUserStore | null;
-  theme: IThemeStore | null;
-  workspace: IWorkspaceStore | null;
+  user: IUserStore;
+  theme: IThemeStore;
+  workspace: IWorkspaceStore;
+  projectPublish: IProjectPublishStore;
 }
 
 export class RootStore {

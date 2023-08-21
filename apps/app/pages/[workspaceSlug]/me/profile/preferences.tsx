@@ -15,25 +15,20 @@ import { ICustomTheme } from "types";
 import { observer } from "mobx-react-lite";
 // mobx store
 import { useMobxStore } from "lib/mobx/store-provider";
-// next themes
-import { useTheme } from "next-themes";
 
 const ProfilePreferences = observer(() => {
-  const { user: myProfile } = useUserAuth();
-
   const store: any = useMobxStore();
-  const { theme } = useTheme();
+  const { user: userStore, theme: themeStore } = store;
 
-  console.log("store", store?.theme?.theme);
-  console.log("theme", theme);
+  const { user: myProfile } = useUserAuth();
 
   const [customThemeSelectorOptions, setCustomThemeSelectorOptions] = useState(false);
 
   const [preLoadedData, setPreLoadedData] = useState<ICustomTheme | null>(null);
 
   useEffect(() => {
-    if (store?.user && store?.theme?.theme === "custom") {
-      const currentTheme = store?.user?.currentUserSettings?.theme;
+    if (userStore?.currentUser && themeStore?.theme === "custom") {
+      const currentTheme = themeStore?.theme;
       if (currentTheme.palette)
         setPreLoadedData({
           background: currentTheme.background !== "" ? currentTheme.background : "#0d101b",
@@ -51,7 +46,7 @@ const ProfilePreferences = observer(() => {
         });
       setCustomThemeSelectorOptions((prevData) => true);
     }
-  }, [store, store?.theme?.theme]);
+  }, [userStore, themeStore]);
 
   return (
     <WorkspaceAuthorizationLayout

@@ -19,18 +19,19 @@ type Props = {
 };
 
 export const ChangeInterfaceTheme: React.FC<Props> = observer(({ setIsPaletteOpen }) => {
-  const { user: userStore } = useMobxStore();
+  const { user: userStore, theme: themeStore } = useMobxStore();
 
   const [mounted, setMounted] = useState(false);
 
   const { setTheme } = useTheme();
 
-  const { user, mutateUser } = useUser();
-
   const updateUserTheme = (newTheme: string) => {
-    if (!user) return;
+    if (!userStore?.currentUser) return;
     setTheme(newTheme);
-    return userStore.updateCurrentUser({ theme: { ...user.theme, theme: newTheme } });
+    themeStore.setTheme(newTheme, null);
+    return userStore.updateCurrentUserAsync({
+      theme: { ...userStore?.currentUser.theme, theme: newTheme },
+    });
   };
 
   // useEffect only runs on the client, so now we can safely show the UI

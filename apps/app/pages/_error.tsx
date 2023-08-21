@@ -10,8 +10,19 @@ import useToast from "hooks/use-toast";
 import DefaultLayout from "layouts/default-layout";
 // ui
 import { PrimaryButton, SecondaryButton } from "components/ui";
+// next-themes
+import { useTheme } from "next-themes";
+// mobx store
+import { useMobxStore } from "lib/mobx/store-provider";
+import { IRootStore } from "store/root";
+import { observer } from "mobx-react-lite";
 
 const CustomErrorComponent = () => {
+  const store: IRootStore = useMobxStore();
+  const { user: userStore, theme: themeStore }: IRootStore = store;
+
+  const { setTheme } = useTheme();
+
   const router = useRouter();
 
   const { setToastAlert } = useToast();
@@ -19,6 +30,13 @@ const CustomErrorComponent = () => {
   const handleSignOut = async () => {
     await authenticationService
       .signOut()
+      .then(() => {
+        setTheme("system");
+        themeStore.setTheme(null, null);
+        userStore.setLoggingIn(false);
+        userStore.setCurrentUser(null);
+        router.push("/");
+      })
       .catch(() =>
         setToastAlert({
           type: "error",

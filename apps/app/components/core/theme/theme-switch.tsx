@@ -22,22 +22,24 @@ type Props = {
 
 export const ThemeSwitch: React.FC<Props> = observer(
   ({ setPreLoadedData, customThemeSelectorOptions, setCustomThemeSelectorOptions }) => {
-    const { user: userStore } = useMobxStore();
-
-    const { user, mutateUser } = useUser();
-    const { theme, setTheme } = useTheme();
+    const { user: userStore, theme: themeStore } = useMobxStore();
+    const { setTheme } = useTheme();
 
     const updateUserTheme = (newTheme: string) => {
-      if (!user) return;
+      if (!userStore?.currentUser) return;
       setTheme(newTheme);
-      return userStore.updateCurrentUser({ theme: { ...user.theme, theme: newTheme } });
+      themeStore.setTheme(newTheme, null);
+      return userStore.updateCurrentUserAsync({
+        ...userStore.currentUser,
+        theme: { ...userStore.currentUser.theme, theme: newTheme },
+      });
     };
 
-    const currentThemeObj = THEMES_OBJ.find((t) => t.value === theme);
+    const currentThemeObj = THEMES_OBJ.find((t) => t.value === themeStore?.theme);
 
     return (
       <CustomSelect
-        value={theme}
+        value={themeStore?.theme}
         label={
           currentThemeObj ? (
             <div className="flex items-center gap-2">
@@ -69,18 +71,36 @@ export const ThemeSwitch: React.FC<Props> = observer(
         }
         onChange={({ value, type }: { value: string; type: string }) => {
           if (value === "custom") {
-            if (user?.theme.palette) {
+            if (
+              userStore?.currentUser &&
+              userStore?.currentUser?.theme &&
+              userStore?.currentUser?.theme.palette
+            ) {
               setPreLoadedData({
-                background: user.theme.background !== "" ? user.theme.background : "#0d101b",
-                text: user.theme.text !== "" ? user.theme.text : "#c5c5c5",
-                primary: user.theme.primary !== "" ? user.theme.primary : "#3f76ff",
+                background:
+                  userStore?.currentUser?.theme.background !== ""
+                    ? userStore?.currentUser?.theme.background
+                    : "#0d101b",
+                text:
+                  userStore?.currentUser?.theme.text !== ""
+                    ? userStore?.currentUser?.theme.text
+                    : "#c5c5c5",
+                primary:
+                  userStore?.currentUser?.theme.primary !== ""
+                    ? userStore?.currentUser?.theme.primary
+                    : "#3f76ff",
                 sidebarBackground:
-                  user.theme.sidebarBackground !== "" ? user.theme.sidebarBackground : "#0d101b",
-                sidebarText: user.theme.sidebarText !== "" ? user.theme.sidebarText : "#c5c5c5",
+                  userStore?.currentUser?.theme.sidebarBackground !== ""
+                    ? userStore?.currentUser?.theme.sidebarBackground
+                    : "#0d101b",
+                sidebarText:
+                  userStore?.currentUser?.theme.sidebarText !== ""
+                    ? userStore?.currentUser?.theme.sidebarText
+                    : "#c5c5c5",
                 darkPalette: false,
                 palette:
-                  user.theme.palette !== ",,,,"
-                    ? user.theme.palette
+                  userStore?.currentUser?.theme.palette !== ",,,,"
+                    ? userStore?.currentUser?.theme.palette
                     : "#0d101b,#c5c5c5,#3f76ff,#0d101b,#c5c5c5",
                 theme: "custom",
               });

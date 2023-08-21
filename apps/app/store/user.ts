@@ -3,53 +3,78 @@ import { action, observable, computed, runInAction, makeObservable } from "mobx"
 // services
 import UserService from "services/user.service";
 // interfaces
-import { ICurrentUser, ICurrentUserSettings, IUser } from "types/users";
+import { IUser } from "types/users";
 import { IRootStore } from "./root";
 
 export interface IUserStore {
-  currentUser: Partial<IUser> | null;
-  loadUserDetails: () => void;
-  updateCurrentUser: (user: any) => void;
+  // observable
+  isLoggingIn: boolean;
+  currentUser: IUser | null;
+  // action
+  setLoggingIn: (isLoggingIn: boolean) => void;
+  setCurrentUser: (currentUser: IUser | null) => void;
+  loadUserDetailsAsync: () => void;
+  updateCurrentUserAsync: (user: Partial<IUser>) => void;
+  // store
+  rootStore: IRootStore;
 }
 
 class UserStore {
-  currentUser: Partial<IUser> | null = null;
+  isLoggingIn: boolean = false;
+  currentUser: IUser | null = null;
   // root store
   rootStore: IRootStore;
 
   constructor(_rootStore: IRootStore) {
     makeObservable(this, {
       // observable
+      isLoggingIn: observable,
       currentUser: observable.ref,
       // action
-      loadUserDetails: action,
-      updateCurrentUser: action,
+      setLoggingIn: action,
+      setCurrentUser: action,
+      loadUserDetailsAsync: action,
+      updateCurrentUserAsync: action,
       // computed
     });
+    // store
     this.rootStore = _rootStore;
+
+    // init load
     this.initialLoad();
   }
 
-  loadUserDetails = async () => {
+  setLoggingIn = (_isLoggingIn: boolean) => {
+    this.isLoggingIn = _isLoggingIn;
+  };
+
+  setCurrentUser = (_currentUser: IUser | null) => {
+    this.currentUser = _currentUser;
+  };
+
+  loadUserDetailsAsync = async () => {
     try {
       let userResponse: IUser | null = await UserService.currentUser();
       userResponse = userResponse || null;
-      if (userResponse) {
+      if (userResponse)
         runInAction(() => {
-          this.currentUser = userResponse;
+          this.setCurrentUser(userResponse);
+          this.setLoggingIn(true);
         });
-      }
+      return {};
     } catch (error) {
-      console.error("Fetching current user error", error);
+      console.error("Fetching user error", error);
+      return error;
     }
   };
 
-  updateCurrentUser = async (user: any) => {
+  updateCurrentUserAsync = async (user: Partial<IUser>) => {
     try {
-      const userResponse: ICurrentUser = await UserService.updateUser(user);
+      const userResponse: IUser = await UserService.updateUser(user);
       if (userResponse) {
-        this.loadUserDetails();
+        this.loadUserDetailsAsync();
       }
+      return {};
     } catch (error) {
       console.error("Updating user error", error);
       return error;

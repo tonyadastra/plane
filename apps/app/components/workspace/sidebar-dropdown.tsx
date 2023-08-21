@@ -56,8 +56,8 @@ const profileLinks = (workspaceSlug: string, userId: string) => [
 ];
 
 export const WorkspaceSidebarDropdown = observer(() => {
-  const { theme: themeStore, workspace: workspaceStore }: IRootStore = useMobxStore();
-  console.log("workspaceStore", workspaceStore);
+  const store: IRootStore = useMobxStore();
+  const { user: userStore, theme: themeStore, workspace: workspaceStore }: IRootStore = store;
 
   const router = useRouter();
   const { workspaceSlug } = router.query;
@@ -86,8 +86,11 @@ export const WorkspaceSidebarDropdown = observer(() => {
       .signOut()
       .then(() => {
         mutateUser(undefined);
-        router.push("/");
         setTheme("system");
+        themeStore.setTheme(null, null);
+        userStore.setLoggingIn(false);
+        userStore.setCurrentUser(null);
+        router.push("/");
       })
       .catch(() =>
         setToastAlert({

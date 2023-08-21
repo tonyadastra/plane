@@ -28,10 +28,6 @@ const MagicSignIn: NextPage = () => {
   const [errorSigningIn, setErrorSignIn] = useState<string | undefined>();
 
   useEffect(() => {
-    setTheme("system");
-  }, [setTheme]);
-
-  useEffect(() => {
     setIsSigningIn(() => false);
     setErrorSignIn(() => undefined);
     if (!password || !key) {

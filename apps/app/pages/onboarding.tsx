@@ -117,10 +117,6 @@ const Onboarding: NextPage = () => {
   };
 
   useEffect(() => {
-    setTheme("system");
-  }, [setTheme]);
-
-  useEffect(() => {
     const handleStepChange = async () => {
       if (!user || !invitations) return;
 

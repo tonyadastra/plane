@@ -49,16 +49,16 @@ class WorkspaceStore {
   };
 
   switchWorkspace = async (workspace_id: string) => {
-    try {
-      runInAction(() => {
-        this.rootStore?.user?.updateCurrentUser({
-          last_workspace_id: workspace_id,
-        });
-        this.activeWorkspace = this.rootStore.user?.currentUser?.last_workspace_id;
-      });
-    } catch (error) {
-      console.log("Failed to load initial workspace data", error);
-    }
+    // try {
+    //   runInAction(() => {
+    //     this.rootStore?.user?.updateCurrentUserAsync({
+    //       last_workspace_id: workspace_id,
+    //     });
+    //     this.activeWorkspace = this.rootStore.user?.currentUser?.last_workspace_id;
+    //   });
+    // } catch (error) {
+    //   console.log("Failed to load initial workspace data", error);
+    // }
   };
 }
 

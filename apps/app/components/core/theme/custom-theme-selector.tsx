@@ -30,7 +30,7 @@ const defaultValues: ICustomTheme = {
 };
 
 export const CustomThemeSelector: React.FC<Props> = observer(({ preLoadedData }) => {
-  const { user: userStore } = useMobxStore();
+  const { user: userStore, theme: themeStore } = useMobxStore();
   const { setTheme } = useTheme();
 
   const [darkPalette, setDarkPalette] = useState(false);
@@ -63,7 +63,8 @@ export const CustomThemeSelector: React.FC<Props> = observer(({ preLoadedData })
       theme: "custom",
     };
     setTheme("custom");
-    return userStore.updateCurrentUser({ theme: payload });
+    themeStore.setTheme("custom", payload);
+    return userStore.updateCurrentUserAsync({ theme: payload });
   };
 
   return (

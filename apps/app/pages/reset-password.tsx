@@ -81,10 +81,6 @@ const ResetPasswordPage: NextPage = () => {
   };
 
   useEffect(() => {
-    setTheme("system");
-  }, [setTheme]);
-
-  useEffect(() => {
     if (parseInt(process.env.NEXT_PUBLIC_ENABLE_OAUTH || "0")) router.push("/");
     else setIsLoading(false);
   }, [router]);

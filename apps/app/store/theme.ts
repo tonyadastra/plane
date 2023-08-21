@@ -3,14 +3,16 @@ import { action, observable, makeObservable } from "mobx";
 // helper
 import { applyTheme, unsetCustomCssVariables } from "helpers/theme.helper";
 // interfaces
-import { ICurrentUserSettings, ICustomTheme } from "types";
+import { IUser } from "types";
 import { IRootStore } from "./root";
+// services
+import UserService from "services/user.service";
 
 export interface IThemeStore {
   sidebarCollapsed: boolean | null;
   theme: string | null;
-  setTheme: (theme: any) => void;
   toggleSidebarCollapse: () => void;
+  setTheme: (_theme: string | null, _themeSettings: any | null) => void;
 }
 
 class ThemeStore {
@@ -41,32 +43,38 @@ class ThemeStore {
       _sidebarCollapsed = _sidebarCollapsed ? (_sidebarCollapsed === "true" ? true : false) : false;
       this.sidebarCollapsed = _sidebarCollapsed;
     } else {
-      this.sidebarCollapsed = !this.sidebarCollapsed;
-      localStorage.setItem("app_sidebar_collapsed", this.sidebarCollapsed.toString());
+      const _sidebarCollapsed: boolean = !this.sidebarCollapsed;
+      this.sidebarCollapsed = _sidebarCollapsed;
+      localStorage.setItem("app_sidebar_collapsed", _sidebarCollapsed.toString());
     }
   }
 
-  setTheme = async (_theme: { theme: ICurrentUserSettings }) => {
+  setTheme = async (_theme: string | null = null, _themeSettings: any | null = null) => {
     try {
-      const currentTheme: string = _theme.theme.theme.toString();
+      if (_theme) {
+        const currentTheme: string = _theme && _theme.toString();
+        // updating the local storage theme value
+        localStorage.setItem("app_theme", currentTheme);
+        // updating the mobx theme value
+        this.theme = currentTheme;
 
-      // updating the local storage theme value
-      localStorage.setItem("theme", currentTheme);
-      // updating the mobx theme value
-      this.theme = currentTheme;
-
-      // applying the theme to platform if the selected theme is custom
-      if (currentTheme === "custom") {
-        const themeSettings = this.rootStore.user?.currentUser || null;
-        if (themeSettings?.theme?.palette) {
-          applyTheme(
-            themeSettings?.theme?.palette !== ",,,,"
-              ? themeSettings?.theme?.palette
-              : "#0d101b,#c5c5c5,#3f76ff,#0d101b,#c5c5c5",
-            themeSettings?.theme?.darkPalette
-          );
-        }
-      } else unsetCustomCssVariables();
+        // applying the theme to platform if the selected theme is custom
+        if (currentTheme === "custom") {
+          const themeSettings = _themeSettings || null;
+          if (themeSettings?.palette) {
+            applyTheme(
+              themeSettings?.palette !== ",,,,"
+                ? themeSettings?.palette
+                : "#0d101b,#c5c5c5,#3f76ff,#0d101b,#c5c5c5",
+              themeSettings?.darkPalette
+            );
+          }
+        } else unsetCustomCssVariables();
+      } else {
+        localStorage.removeItem("app_theme");
+        this.theme = null;
+        unsetCustomCssVariables();
+      }
     } catch (error) {
       console.error("setting user theme error", error);
     }

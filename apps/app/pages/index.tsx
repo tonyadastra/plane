@@ -1,9 +1,10 @@
-import React, { useEffect } from "react";
+import React from "react";
 
 import Image from "next/image";
 
 import type { NextPage } from "next";
-
+// next themes
+import { useTheme } from "next-themes";
 // layouts
 import DefaultLayout from "layouts/default-layout";
 // services
@@ -26,8 +27,7 @@ import BluePlaneLogoWithoutText from "public/plane-logos/blue-without-text.png";
 import { observer } from "mobx-react-lite";
 // mobx store
 import { useMobxStore } from "lib/mobx/store-provider";
-// next themes
-import { useTheme } from "next-themes";
+import { IRootStore } from "store/root";
 import { IUser } from "types";
 
 // types
@@ -38,17 +38,17 @@ type EmailPasswordFormValues = {
 };
 
 const HomePage: NextPage = observer(() => {
-  const store: any = useMobxStore();
+  const store: IRootStore = useMobxStore();
+  const { user: userStore, theme: themeStore } = store;
+
   const { setTheme } = useTheme();
 
   const { isLoading, mutateUser } = useUserAuth("sign-in");
 
   const { setToastAlert } = useToast();
 
-  const handleTheme = (user: IUser) => {
-    const currentTheme = user.theme.theme ?? "system";
-    setTheme(currentTheme);
-    store?.user?.setCurrentUserSettings();
+  const handleUserLoggedIn = () => {
+    userStore.loadUserDetailsAsync();
   };
 
   const handleGoogleSignIn = async ({ clientId, credential }: any) => {
@@ -62,7 +62,7 @@ const HomePage: NextPage = observer(() => {
         const response = await authenticationService.socialAuth(socialAuthPayload);
         if (response && response?.user) {
           mutateUser();
-          handleTheme(response?.user);
+          handleUserLoggedIn();
         }
       } else {
         throw Error("Cant find credentials");
@@ -88,7 +88,7 @@ const HomePage: NextPage = observer(() => {
         const response = await authenticationService.socialAuth(socialAuthPayload);
         if (response && response?.user) {
           mutateUser();
-          handleTheme(response?.user);
+          handleUserLoggedIn();
         }
       } else {
         throw Error("Cant find credentials");
@@ -110,7 +110,7 @@ const HomePage: NextPage = observer(() => {
         try {
           if (response) {
             mutateUser();
-            handleTheme(response?.user);
+            handleUserLoggedIn();
           }
         } catch (err: any) {
           setToastAlert({
@@ -137,7 +137,7 @@ const HomePage: NextPage = observer(() => {
     try {
       if (response) {
         mutateUser();
-        handleTheme(response?.user);
+        handleUserLoggedIn();
       }
     } catch (err: any) {
       setToastAlert({
@@ -148,10 +148,6 @@ const HomePage: NextPage = observer(() => {
       });
     }
   };
-
-  useEffect(() => {
-    setTheme("system");
-  }, [setTheme]);
 
   return (
     <DefaultLayout>
