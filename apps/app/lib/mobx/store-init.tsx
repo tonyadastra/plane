@@ -8,7 +8,7 @@ import { useMobxStore } from "lib/mobx/store-provider";
 
 const MobxStoreInit = observer(() => {
   const store: IRootStore = useMobxStore();
-  const { user: userStore, theme: themeStore } = store;
+  const { user: userStore, theme: themeStore, workspace: workspaceStore } = store;
 
   const { setTheme } = useTheme();
 
@@ -42,6 +42,12 @@ const MobxStoreInit = observer(() => {
       }
     }
   }, [themeStore, userStore?.isLoggingIn, userStore?.currentUser, setTheme]);
+
+  // init workspace
+  useEffect(() => {
+    if (userStore?.currentUser && userStore?.isLoggingIn && workspaceStore?.list === null)
+      workspaceStore.loadWorkspacesAsync();
+  }, [workspaceStore, userStore, userStore?.isLoggingIn, userStore?.currentUser]);
 
   return <></>;
 });

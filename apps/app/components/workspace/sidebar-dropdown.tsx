@@ -59,6 +59,12 @@ export const WorkspaceSidebarDropdown = observer(() => {
   const store: IRootStore = useMobxStore();
   const { user: userStore, theme: themeStore, workspace: workspaceStore }: IRootStore = store;
 
+  console.log("---");
+  console.log("userStore -->", userStore?.isLoggingIn, userStore?.currentUser);
+  console.log("themeStore -->", themeStore?.theme, themeStore?.sidebarCollapsed);
+  console.log("workspaceStore", workspaceStore);
+  console.log("---");
+
   const router = useRouter();
   const { workspaceSlug } = router.query;
 
