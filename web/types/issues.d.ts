@@ -91,9 +91,8 @@ export interface IIssue {
   cycle: string | null;
   cycle_id: string | null;
   cycle_detail: ICycle | null;
-  description: any;
-  description_html: any;
-  description_stripped: any;
+  description_html: string;
+  description_stripped: string;
   estimate_point: number | null;
   id: string;
   // tempId is used for optimistic updates. It is not a part of the API response.
@@ -116,7 +115,6 @@ export interface IIssue {
   project_detail: IProjectLite;
   sequence_id: number;
   sort_order: number;
-  sprints: string | null;
   start_date: string | null;
   state: string;
   state_detail: IState;

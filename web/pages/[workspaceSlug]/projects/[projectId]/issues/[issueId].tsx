@@ -23,7 +23,6 @@ import { NextPageWithLayout } from "types/app";
 import { PROJECT_ISSUES_ACTIVITY, ISSUE_DETAILS } from "constants/fetch-keys";
 
 const defaultValues: Partial<IIssue> = {
-  description: "",
   description_html: "",
   estimate_point: null,
   issue_cycle: null,

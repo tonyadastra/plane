@@ -134,7 +134,6 @@ export const IssueForm: FC<IssueFormProps> = observer((props) => {
 
   const payload: Partial<IIssue> = {
     name: getValues("name"),
-    description: getValues("description"),
     state: getValues("state"),
     priority: getValues("priority"),
     assignees: getValues("assignees"),
@@ -161,14 +160,6 @@ export const IssueForm: FC<IssueFormProps> = observer((props) => {
     reset({
       ...defaultValues,
       project: projectId,
-      description: {
-        type: "doc",
-        content: [
-          {
-            type: "paragraph",
-          },
-        ],
-      },
       description_html: "<p></p>",
     });
     editorRef?.current?.clearEditor();
@@ -177,7 +168,6 @@ export const IssueForm: FC<IssueFormProps> = observer((props) => {
   const handleAiAssistance = async (response: string) => {
     if (!workspaceSlug || !projectId) return;
 
-    setValue("description", {});
     setValue("description_html", `${watch("description_html")}<p>${response}</p>`);
     editorRef.current?.setEditorValue(`${watch("description_html")}`);
   };
@@ -392,10 +382,7 @@ export const IssueForm: FC<IssueFormProps> = observer((props) => {
                             : value
                         }
                         customClassName="min-h-[7rem] border-custom-border-100"
-                        onChange={(description: Object, description_html: string) => {
-                          onChange(description_html);
-                          setValue("description", description);
-                        }}
+                        onChange={(description: Object, description_html: string) => onChange(description_html)}
                         mentionHighlights={editorSuggestion.mentionHighlights}
                         mentionSuggestions={editorSuggestion.mentionSuggestions}
                       />

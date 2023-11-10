@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/router";
 import { observer } from "mobx-react-lite";
 import useSWR from "swr";
@@ -15,8 +15,11 @@ import {
   ProjectEmptyState,
 } from "components/issues";
 import { Spinner } from "@plane/ui";
+import { ProjectIssueModal } from "components/issues/issue-modal/modal";
 
 export const ProjectLayoutRoot: React.FC = observer(() => {
+  const [isModalOpen, setIsModalOpen] = useState(true);
+
   const router = useRouter();
   const { workspaceSlug, projectId } = router.query;
 
@@ -41,25 +44,28 @@ export const ProjectLayoutRoot: React.FC = observer(() => {
     );
 
   return (
-    <div className="relative w-full h-full flex flex-col overflow-hidden">
-      <ProjectAppliedFiltersRoot />
-      {(activeLayout === "list" || activeLayout === "spreadsheet") && issueCount === 0 ? (
-        <ProjectEmptyState />
-      ) : (
-        <div className="w-full h-full overflow-auto">
-          {activeLayout === "list" ? (
-            <ListLayout />
-          ) : activeLayout === "kanban" ? (
-            <KanBanLayout />
-          ) : activeLayout === "calendar" ? (
-            <CalendarLayout />
-          ) : activeLayout === "gantt_chart" ? (
-            <GanttLayout />
-          ) : activeLayout === "spreadsheet" ? (
-            <ProjectSpreadsheetLayout />
-          ) : null}
-        </div>
-      )}
-    </div>
+    <>
+      {projectId && <ProjectIssueModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />}
+      <div className="relative w-full h-full flex flex-col overflow-hidden">
+        <ProjectAppliedFiltersRoot />
+        {(activeLayout === "list" || activeLayout === "spreadsheet") && issueCount === 0 ? (
+          <ProjectEmptyState />
+        ) : (
+          <div className="w-full h-full overflow-auto">
+            {activeLayout === "list" ? (
+              <ListLayout />
+            ) : activeLayout === "kanban" ? (
+              <KanBanLayout />
+            ) : activeLayout === "calendar" ? (
+              <CalendarLayout />
+            ) : activeLayout === "gantt_chart" ? (
+              <GanttLayout />
+            ) : activeLayout === "spreadsheet" ? (
+              <ProjectSpreadsheetLayout />
+            ) : null}
+          </div>
+        )}
+      </div>
+    </>
   );
 });

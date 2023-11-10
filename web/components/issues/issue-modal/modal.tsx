@@ -1,0 +1,176 @@
+import React, { useState } from "react";
+import { useRouter } from "next/router";
+import { observer } from "mobx-react-lite";
+import { Dialog, Transition } from "@headlessui/react";
+// mobx store
+import { useMobxStore } from "lib/mobx/store-provider";
+// hooks
+import useToast from "hooks/use-toast";
+import useLocalStorage from "hooks/use-local-storage";
+// components
+import { DraftIssueLayout } from "./draft-issue-layout";
+// types
+import type { IIssue } from "types";
+
+export interface IssuesModalProps {
+  data?: IIssue;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const ProjectIssueModal: React.FC<IssuesModalProps> = observer((props) => {
+  const { data, isOpen, onClose } = props;
+
+  const [changesMade, setChangesMade] = useState<Partial<IIssue> | null>(null);
+
+  const {
+    project: projectStore,
+    issueDetail: issueDetailStore,
+    cycleIssue: cycleIssueStore,
+    moduleIssue: moduleIssueStore,
+  } = useMobxStore();
+  const projects = projectStore.workspaceProjects;
+
+  const router = useRouter();
+  const { workspaceSlug, projectId } = router.query;
+
+  const { setToastAlert } = useToast();
+
+  const { setValue: setLocalStorageDraftIssue } = useLocalStorage<any>("draftedIssue", {});
+
+  const handleClose = () => {
+    if (changesMade) {
+      const draftIssue = JSON.stringify(changesMade);
+
+      setLocalStorageDraftIssue(draftIssue);
+    }
+
+    onClose();
+  };
+
+  const createIssue = async (payload: Partial<IIssue>): Promise<IIssue | null> => {
+    const issueProject = payload.project;
+
+    if (!workspaceSlug || !issueProject) return null;
+
+    await issueDetailStore
+      .createIssue(workspaceSlug.toString(), issueProject, payload)
+      .then(async (res) => {
+        setToastAlert({
+          type: "success",
+          title: "Success!",
+          message: "Issue created successfully.",
+        });
+
+        return res;
+      })
+      .catch(() => {
+        setToastAlert({
+          type: "error",
+          title: "Error!",
+          message: "Issue could not be created. Please try again.",
+        });
+      });
+
+    return null;
+  };
+
+  const updateIssue = async (payload: Partial<IIssue>): Promise<IIssue | null> => {
+    const issueProject = payload.project;
+
+    if (!workspaceSlug || !issueProject || !data?.id) return null;
+
+    await issueDetailStore
+      .updateIssue(workspaceSlug.toString(), issueProject, data.id, payload)
+      .then((res) => {
+        setToastAlert({
+          type: "success",
+          title: "Success!",
+          message: "Issue updated successfully.",
+        });
+
+        return { ...payload, ...res };
+      })
+      .catch(() => {
+        setToastAlert({
+          type: "error",
+          title: "Error!",
+          message: "Issue could not be updated. Please try again.",
+        });
+      });
+
+    return null;
+  };
+
+  const handleFormSubmit = async (formData: Partial<IIssue>) => {
+    if (!workspaceSlug || !formData.project) return;
+
+    const payload: Partial<IIssue> = {
+      ...formData,
+      description_html: formData.description_html ?? "<p></p>",
+    };
+
+    let res: IIssue | null = null;
+    if (!data?.id) res = await createIssue(payload);
+    else res = await updateIssue(payload);
+
+    // add issue to cycle if cycle is selected, and cycle is different from current cycle
+    if (formData.cycle && res && (!data?.id || formData.cycle !== data?.cycle))
+      cycleIssueStore.addIssueToCycle(workspaceSlug.toString(), formData.project, formData.cycle, [res.id]);
+
+    // add issue to module if module is selected, and module is different from current module
+    if (formData.module && res && (!data?.id || formData.module !== data?.module))
+      moduleIssueStore.addIssueToModule(workspaceSlug.toString(), formData.project, formData.module, [res.id]);
+
+    handleClose();
+  };
+
+  // don't open the modal if there are no projects
+  if (!projects || projects.length === 0) return null;
+
+  // if project id is present in the router query, use that as the selected project id, otherwise use the first project id
+  const selectedProjectId = projectId ? projectId.toString() : projects[0].id;
+
+  return (
+    <Transition.Root show={isOpen} as={React.Fragment}>
+      <Dialog as="div" className="relative z-20" onClose={handleClose}>
+        <Transition.Child
+          as={React.Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-custom-backdrop bg-opacity-50 transition-opacity" />
+        </Transition.Child>
+
+        <div className="fixed inset-0 z-10 overflow-y-auto">
+          <div className="my-10 flex items-center justify-center p-4 text-center sm:p-0 md:my-20">
+            <Transition.Child
+              as={React.Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              enterTo="opacity-100 translate-y-0 sm:scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+              leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            >
+              <Dialog.Panel className="relative transform rounded-lg border border-custom-border-200 bg-custom-background-100 p-5 text-left shadow-xl transition-all sm:w-full mx-4 sm:max-w-4xl">
+                <DraftIssueLayout
+                  changesMade={changesMade}
+                  data={data}
+                  onChange={(formData) => setChangesMade(formData)}
+                  onClose={handleClose}
+                  onSubmit={handleFormSubmit}
+                  projectId={selectedProjectId}
+                />
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
+      </Dialog>
+    </Transition.Root>
+  );
+});

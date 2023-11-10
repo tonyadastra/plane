@@ -69,15 +69,15 @@ export const ConfirmIssueDiscard: React.FC<Props> = (props) => {
                 </div>
                 <div className="flex justify-between gap-2 p-4 sm:px-6">
                   <div>
-                    <Button variant="neutral-primary" onClick={onDiscard}>
+                    <Button variant="neutral-primary" onClick={onDiscard} size="sm">
                       Discard
                     </Button>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="neutral-primary" onClick={onClose}>
+                    <Button variant="neutral-primary" onClick={onClose} size="sm">
                       Cancel
                     </Button>
-                    <Button variant="primary" onClick={handleDeletion} loading={isLoading}>
+                    <Button variant="primary" onClick={handleDeletion} loading={isLoading} size="sm">
                       {isLoading ? "Saving..." : "Save Draft"}
                     </Button>
                   </div>
