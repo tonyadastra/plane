@@ -17,7 +17,7 @@ export interface DraftIssueProps {
   changesMade: Partial<IIssue> | null;
   data?: IIssue;
   onChange: (formData: Partial<IIssue> | null) => void;
-  onClose: () => void;
+  onClose: (saveDraftIssueInLocalStorage?: boolean) => void;
   onSubmit: (formData: Partial<IIssue>) => Promise<void>;
   projectId: string;
 }
@@ -39,7 +39,7 @@ export const DraftIssueLayout: React.FC<DraftIssueProps> = observer((props) => {
 
   const handleClose = () => {
     if (changesMade) setIssueDiscardModal(true);
-    else onClose();
+    else onClose(false);
   };
 
   const handleCreateDraftIssue = async () => {
@@ -58,7 +58,7 @@ export const DraftIssueLayout: React.FC<DraftIssueProps> = observer((props) => {
 
         onChange(null);
         setIssueDiscardModal(false);
-        handleClose();
+        onClose(false);
       })
       .catch(() =>
         setToastAlert({
@@ -84,7 +84,7 @@ export const DraftIssueLayout: React.FC<DraftIssueProps> = observer((props) => {
         onDiscard={() => {
           onChange(null);
           setIssueDiscardModal(false);
-          onClose();
+          onClose(false);
         }}
       />
       <IssueFormRoot

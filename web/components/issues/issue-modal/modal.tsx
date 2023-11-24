@@ -9,6 +9,7 @@ import useToast from "hooks/use-toast";
 import useLocalStorage from "hooks/use-local-storage";
 // components
 import { DraftIssueLayout } from "./draft-issue-layout";
+import { IssueFormRoot } from "./form";
 // types
 import type { IIssue } from "types";
 
@@ -16,10 +17,11 @@ export interface IssuesModalProps {
   data?: IIssue;
   isOpen: boolean;
   onClose: () => void;
+  withDraftIssueWrapper?: boolean;
 }
 
 export const ProjectIssueModal: React.FC<IssuesModalProps> = observer((props) => {
-  const { data, isOpen, onClose } = props;
+  const { data, isOpen, onClose, withDraftIssueWrapper } = props;
 
   const [changesMade, setChangesMade] = useState<Partial<IIssue> | null>(null);
 
@@ -38,8 +40,8 @@ export const ProjectIssueModal: React.FC<IssuesModalProps> = observer((props) =>
 
   const { setValue: setLocalStorageDraftIssue } = useLocalStorage<any>("draftedIssue", {});
 
-  const handleClose = () => {
-    if (changesMade) {
+  const handleClose = (saveDraftIssueInLocalStorage?: boolean) => {
+    if (changesMade && saveDraftIssueInLocalStorage) {
       const draftIssue = JSON.stringify(changesMade);
 
       setLocalStorageDraftIssue(draftIssue);
@@ -133,7 +135,7 @@ export const ProjectIssueModal: React.FC<IssuesModalProps> = observer((props) =>
 
   return (
     <Transition.Root show={isOpen} as={React.Fragment}>
-      <Dialog as="div" className="relative z-20" onClose={handleClose}>
+      <Dialog as="div" className="relative z-20" onClose={() => handleClose(true)}>
         <Transition.Child
           as={React.Fragment}
           enter="ease-out duration-300"
@@ -158,14 +160,23 @@ export const ProjectIssueModal: React.FC<IssuesModalProps> = observer((props) =>
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
               <Dialog.Panel className="relative transform rounded-lg border border-custom-border-200 bg-custom-background-100 p-5 text-left shadow-xl transition-all sm:w-full mx-4 sm:max-w-4xl">
-                <DraftIssueLayout
-                  changesMade={changesMade}
-                  data={data}
-                  onChange={(formData) => setChangesMade(formData)}
-                  onClose={handleClose}
-                  onSubmit={handleFormSubmit}
-                  projectId={selectedProjectId}
-                />
+                {withDraftIssueWrapper ? (
+                  <DraftIssueLayout
+                    changesMade={changesMade}
+                    data={data}
+                    onChange={(formData) => setChangesMade(formData)}
+                    onClose={handleClose}
+                    onSubmit={handleFormSubmit}
+                    projectId={selectedProjectId}
+                  />
+                ) : (
+                  <IssueFormRoot
+                    data={data}
+                    onClose={() => handleClose(false)}
+                    onSubmit={handleFormSubmit}
+                    projectId={selectedProjectId}
+                  />
+                )}
               </Dialog.Panel>
             </Transition.Child>
           </div>

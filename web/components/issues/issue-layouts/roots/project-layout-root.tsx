@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { useRouter } from "next/router";
 import { observer } from "mobx-react-lite";
 import useSWR from "swr";
@@ -14,11 +14,8 @@ import {
   ProjectSpreadsheetLayout,
 } from "components/issues";
 import { Spinner } from "@plane/ui";
-import { ProjectIssueModal } from "components/issues/issue-modal/modal";
 
 export const ProjectLayoutRoot: React.FC = observer(() => {
-  const [isModalOpen, setIsModalOpen] = useState(true);
-
   const router = useRouter();
   const { workspaceSlug, projectId } = router.query as { workspaceSlug: string; projectId: string };
 
@@ -37,34 +34,31 @@ export const ProjectLayoutRoot: React.FC = observer(() => {
   const activeLayout = issueFilters?.displayFilters?.layout;
 
   return (
-    <>
-      {projectId && <ProjectIssueModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />}
-      <div className="relative w-full h-full flex flex-col overflow-hidden">
-        <ProjectAppliedFiltersRoot />
+    <div className="relative w-full h-full flex flex-col overflow-hidden">
+      <ProjectAppliedFiltersRoot />
 
-        {loader === "init-loader" ? (
-          <div className="w-full h-full flex justify-center items-center">
-            <Spinner />
+      {loader === "init-loader" ? (
+        <div className="w-full h-full flex justify-center items-center">
+          <Spinner />
+        </div>
+      ) : (
+        <>
+          {/* {(activeLayout === "list" || activeLayout === "spreadsheet") && issueCount === 0 && <ProjectEmptyState />} */}
+          <div className="w-full h-full relative overflow-auto">
+            {activeLayout === "list" ? (
+              <ListLayout />
+            ) : activeLayout === "kanban" ? (
+              <KanBanLayout />
+            ) : activeLayout === "calendar" ? (
+              <CalendarLayout />
+            ) : activeLayout === "gantt_chart" ? (
+              <GanttLayout />
+            ) : activeLayout === "spreadsheet" ? (
+              <ProjectSpreadsheetLayout />
+            ) : null}
           </div>
-        ) : (
-          <>
-            {/* {(activeLayout === "list" || activeLayout === "spreadsheet") && issueCount === 0 && <ProjectEmptyState />} */}
-            <div className="w-full h-full relative overflow-auto">
-              {activeLayout === "list" ? (
-                <ListLayout />
-              ) : activeLayout === "kanban" ? (
-                <KanBanLayout />
-              ) : activeLayout === "calendar" ? (
-                <CalendarLayout />
-              ) : activeLayout === "gantt_chart" ? (
-                <GanttLayout />
-              ) : activeLayout === "spreadsheet" ? (
-                <ProjectSpreadsheetLayout />
-              ) : null}
-            </div>
-          </>
-        )}
-      </div>
-    </>
+        </>
+      )}
+    </div>
   );
 });
