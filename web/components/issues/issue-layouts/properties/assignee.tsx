@@ -52,13 +52,13 @@ export const IssuePropertyAssignee: React.FC<IIssuePropertyAssignee> = observer(
   const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(null);
   const [isLoading, setIsLoading] = useState<Boolean>(false);
 
-  const fetchProjectMembers = () => {
-    setIsLoading(true);
-    if (workspaceSlug && projectId)
-      workspaceSlug &&
-        projectId &&
-        projectStore.fetchProjectMembers(workspaceSlug, projectId).then(() => setIsLoading(false));
-  };
+  // const fetchProjectMembers = () => {
+  //   setIsLoading(true);
+  //   if (workspaceSlug && projectId)
+  //     workspaceSlug &&
+  //       projectId &&
+  //       projectStore.fetchProjectMembers(workspaceSlug, projectId).then(() => setIsLoading(false));
+  // };
 
   const getWorkspaceMembers = () => {
     setIsLoading(true);
@@ -117,8 +117,8 @@ export const IssuePropertyAssignee: React.FC<IIssuePropertyAssignee> = observer(
         ) : (
           <span
             className={`flex items-center justify-between gap-1 h-full w-full text-xs rounded duration-300 focus:outline-none ${
-              noLabelBorder ? "" : " px-2.5 py-1 border border-custom-border-300"
-            }}`}
+              noLabelBorder ? "" : " px-2.5 py-1 border-[0.5px] border-custom-border-300"
+            }`}
           >
             <User2 className="h-3 w-3" />
           </span>

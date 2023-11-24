@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import { useRouter } from "next/router";
 import { observer } from "mobx-react-lite";
-import useSWR from "swr";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { Dialog, Transition } from "@headlessui/react";
 import { ChevronDown, Plus, X } from "lucide-react";
@@ -10,22 +9,20 @@ import { useMobxStore } from "lib/mobx/store-provider";
 // ui
 import { Avatar, Button, CustomSelect, CustomSearchSelect } from "@plane/ui";
 // services
-import { ProjectService } from "services/project";
-import { WorkspaceService } from "services/workspace.service";
+import { ProjectMemberService } from "services/project";
 // hooks
 import useToast from "hooks/use-toast";
+// helpers
+import { trackEvent } from "helpers/event-tracker.helper";
 // types
-import { IUser, TUserProjectRole } from "types";
-// fetch-keys
-import { WORKSPACE_MEMBERS } from "constants/fetch-keys";
+import { IProjectMember, TUserProjectRole } from "types";
 // constants
 import { ROLE } from "constants/workspace";
 
 type Props = {
   isOpen: boolean;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  members: any[];
-  user: IUser | undefined;
+  members: IProjectMember[];
+  onClose: () => void;
   onSuccess: () => void;
 };
 
@@ -48,24 +45,20 @@ const defaultValues: FormValues = {
 };
 
 // services
-const projectService = new ProjectService();
-const workspaceService = new WorkspaceService();
+const projectMemberService = new ProjectMemberService();
 
 export const SendProjectInvitationModal: React.FC<Props> = observer((props) => {
-  const { isOpen, setIsOpen, members, user, onSuccess } = props;
+  const { isOpen, members, onClose, onSuccess } = props;
 
   const router = useRouter();
   const { workspaceSlug, projectId } = router.query;
 
   const { setToastAlert } = useToast();
 
-  const { user: userStore } = useMobxStore();
-  const userRole = userStore.currentProjectRole;
-
-  const { data: people } = useSWR(
-    workspaceSlug ? WORKSPACE_MEMBERS(workspaceSlug as string) : null,
-    workspaceSlug ? () => workspaceService.fetchWorkspaceMembers(workspaceSlug as string) : null
-  );
+  const {
+    user: { currentProjectRole },
+    workspaceMember: { workspaceMembers },
+  } = useMobxStore();
 
   const {
     formState: { errors, isSubmitting },
@@ -79,8 +72,8 @@ export const SendProjectInvitationModal: React.FC<Props> = observer((props) => {
     name: "members",
   });
 
-  const uninvitedPeople = people?.filter((person) => {
-    const isInvited = members?.find((member) => member.memberId === person.member.id);
+  const uninvitedPeople = workspaceMembers?.filter((person) => {
+    const isInvited = members?.find((member) => member.member.id === person.member.id);
 
     return !isInvited;
   });
@@ -90,16 +83,17 @@ export const SendProjectInvitationModal: React.FC<Props> = observer((props) => {
 
     const payload = { ...formData };
 
-    await projectService
-      .bulkAddMembersToProject(workspaceSlug.toString(), projectId.toString(), payload, user)
+    await projectMemberService
+      .bulkAddMembersToProject(workspaceSlug.toString(), projectId.toString(), payload)
       .then(() => {
-        setIsOpen(false);
+        onSuccess();
+        onClose();
+        trackEvent("PROJECT_MEMBER_INVITE");
         setToastAlert({
           title: "Success",
           type: "success",
           message: "Member added successfully",
         });
-        onSuccess();
       })
       .catch((error) => {
         console.log(error);
@@ -110,7 +104,8 @@ export const SendProjectInvitationModal: React.FC<Props> = observer((props) => {
   };
 
   const handleClose = () => {
-    setIsOpen(false);
+    onClose();
+
     const timeout = setTimeout(() => {
       reset(defaultValues);
       clearTimeout(timeout);
@@ -158,7 +153,7 @@ export const SendProjectInvitationModal: React.FC<Props> = observer((props) => {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-custom-backdrop bg-opacity-50 transition-opacity" />
+          <div className="fixed inset-0 bg-custom-backdrop transition-opacity" />
         </Transition.Child>
 
         <div className="fixed inset-0 z-20 overflow-y-auto">
@@ -172,7 +167,7 @@ export const SendProjectInvitationModal: React.FC<Props> = observer((props) => {
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="relative transform rounded-lg border border-custom-border-200 bg-custom-background-80 p-5 text-left shadow-xl transition-all sm:w-full sm:max-w-2xl">
+              <Dialog.Panel className="relative transform rounded-lg bg-custom-background-100 p-5 text-left shadow-custom-shadow-md transition-all sm:w-full sm:max-w-2xl">
                 <form onSubmit={handleSubmit(onSubmit)}>
                   <div className="space-y-5">
                     <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-custom-text-100">
@@ -191,7 +186,7 @@ export const SendProjectInvitationModal: React.FC<Props> = observer((props) => {
                               name={`members.${index}.member_id`}
                               rules={{ required: "Please select a member" }}
                               render={({ field: { value, onChange } }) => {
-                                const selectedMember = people?.find((p) => p.member.id === value)?.member;
+                                const selectedMember = workspaceMembers?.find((p) => p.member.id === value)?.member;
 
                                 return (
                                   <CustomSearchSelect
@@ -246,7 +241,7 @@ export const SendProjectInvitationModal: React.FC<Props> = observer((props) => {
                                     width="w-full"
                                   >
                                     {Object.entries(ROLE).map(([key, label]) => {
-                                      if (parseInt(key) > (userRole ?? 5)) return null;
+                                      if (parseInt(key) > (currentProjectRole ?? 5)) return null;
 
                                       return (
                                         <CustomSelect.Option key={key} value={key}>
@@ -290,10 +285,10 @@ export const SendProjectInvitationModal: React.FC<Props> = observer((props) => {
                       Add more
                     </button>
                     <div className="flex items-center gap-2">
-                      <Button variant="neutral-primary" onClick={handleClose}>
+                      <Button variant="neutral-primary" size="sm" onClick={handleClose}>
                         Cancel
                       </Button>
-                      <Button variant="primary" type="submit" loading={isSubmitting}>
+                      <Button variant="primary" size="sm" type="submit" loading={isSubmitting}>
                         {isSubmitting
                           ? `${fields && fields.length > 1 ? "Adding Members..." : "Adding Member..."}`
                           : `${fields && fields.length > 1 ? "Add Members" : "Add Member"}`}

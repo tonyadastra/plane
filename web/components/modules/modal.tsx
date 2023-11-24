@@ -49,9 +49,9 @@ export const CreateUpdateModuleModal: React.FC<Props> = observer((props) => {
 
   const createModule = async (payload: Partial<IModule>) => {
     if (!workspaceSlug || !projectId) return;
-
+    const selectedProjectId = payload.project ?? projectId.toString();
     await moduleStore
-      .createModule(workspaceSlug.toString(), projectId.toString(), payload)
+      .createModule(workspaceSlug.toString(), selectedProjectId, payload)
       .then(() => {
         handleClose();
 
@@ -72,9 +72,9 @@ export const CreateUpdateModuleModal: React.FC<Props> = observer((props) => {
 
   const updateModule = async (payload: Partial<IModule>) => {
     if (!workspaceSlug || !projectId || !data) return;
-
+    const selectedProjectId = payload.project ?? projectId.toString();
     await moduleStore
-      .updateModuleDetails(workspaceSlug.toString(), projectId.toString(), data.id, payload)
+      .updateModuleDetails(workspaceSlug.toString(), selectedProjectId, data.id, payload)
       .then(() => {
         handleClose();
 
@@ -99,7 +99,6 @@ export const CreateUpdateModuleModal: React.FC<Props> = observer((props) => {
     const payload: Partial<IModule> = {
       ...formData,
     };
-
     if (!data) await createModule(payload);
     else await updateModule(payload);
   };
@@ -137,7 +136,7 @@ export const CreateUpdateModuleModal: React.FC<Props> = observer((props) => {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-custom-backdrop bg-opacity-50 transition-opacity" />
+          <div className="fixed inset-0 bg-custom-backdrop transition-opacity" />
         </Transition.Child>
 
         <div className="fixed inset-0 z-10 overflow-y-auto">
@@ -151,7 +150,7 @@ export const CreateUpdateModuleModal: React.FC<Props> = observer((props) => {
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="relative transform rounded-lg border border-custom-border-200 bg-custom-background-100 p-5 text-left shadow-xl transition-all sm:w-full sm:max-w-2xl">
+              <Dialog.Panel className="relative transform rounded-lg bg-custom-background-100 p-5 text-left shadow-custom-shadow-md transition-all sm:w-full sm:max-w-2xl">
                 <ModuleForm
                   handleFormSubmit={handleFormSubmit}
                   handleClose={handleClose}

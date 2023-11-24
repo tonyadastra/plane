@@ -16,6 +16,7 @@ import { ProjectService } from "services/project";
 // hooks
 import useToast from "hooks/use-toast";
 import { useMobxStore } from "lib/mobx/store-provider";
+import { trackEvent } from "helpers/event-tracker.helper";
 
 export interface IProjectDetailsForm {
   project: IProject;
@@ -61,7 +62,8 @@ export const ProjectDetailsForm: FC<IProjectDetailsForm> = (props) => {
 
     return projectStore
       .updateProject(workspaceSlug.toString(), project.id, payload)
-      .then(() => {
+      .then((res) => {
+        trackEvent("UPDATE_PROJECT", res);
         setToastAlert({
           type: "success",
           title: "Success!",
@@ -69,6 +71,7 @@ export const ProjectDetailsForm: FC<IProjectDetailsForm> = (props) => {
         });
       })
       .catch((error) => {
+        trackEvent("UPDATE_PROJECT/FAIL");
         setToastAlert({
           type: "error",
           title: "Error!",
@@ -253,7 +256,7 @@ export const ProjectDetailsForm: FC<IProjectDetailsForm> = (props) => {
                   value={value}
                   onChange={onChange}
                   label={selectedNetwork?.label ?? "Select network"}
-                  className="!border-custom-border-200 !shadow-none font-medium"
+                  buttonClassName="!border-custom-border-200 !shadow-none font-medium rounded-md"
                   input
                   disabled={!isAdmin}
                   optionsClassName="w-full"

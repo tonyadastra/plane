@@ -4,8 +4,6 @@ import useSWR, { mutate } from "swr";
 import { useForm } from "react-hook-form";
 // services
 import { IssueService } from "services/issue";
-// hooks
-import useUserAuth from "hooks/use-user-auth";
 // layouts
 import { AppLayout } from "layouts/app-layout";
 // components
@@ -41,8 +39,6 @@ const IssueDetailsPage: NextPageWithLayout = () => {
   // router
   const router = useRouter();
   const { workspaceSlug, projectId, issueId } = router.query;
-
-  const { user } = useUserAuth();
 
   const {
     data: issueDetails,
@@ -84,7 +80,7 @@ const IssueDetailsPage: NextPageWithLayout = () => {
       delete payload.issue_relations;
 
       await issueService
-        .patchIssue(workspaceSlug as string, projectId as string, issueId as string, payload, user)
+        .patchIssue(workspaceSlug as string, projectId as string, issueId as string, payload)
         .then(() => {
           mutateIssueDetails();
           mutate(PROJECT_ISSUES_ACTIVITY(issueId as string));
@@ -93,7 +89,7 @@ const IssueDetailsPage: NextPageWithLayout = () => {
           console.error(e);
         });
     },
-    [workspaceSlug, issueId, projectId, mutateIssueDetails, user]
+    [workspaceSlug, issueId, projectId, mutateIssueDetails]
   );
 
   useEffect(() => {

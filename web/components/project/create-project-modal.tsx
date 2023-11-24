@@ -20,6 +20,8 @@ import { getRandomEmoji, renderEmoji } from "helpers/emoji.helper";
 import { IWorkspaceMember } from "types";
 // constants
 import { NETWORK_CHOICES, PROJECT_UNSPLASH_COVERS } from "constants/project";
+// track events
+import { trackEvent } from "helpers/event-tracker.helper";
 
 type Props = {
   isOpen: boolean;
@@ -53,7 +55,7 @@ export interface ICreateProjectForm {
   description: string;
   emoji_and_icon: string;
   network: number;
-  project_lead_member: IWorkspaceMember;
+  project_lead_member: string;
   project_lead: string;
   cover_image: string;
   icon_prop: any;
@@ -124,11 +126,19 @@ export const CreateProjectModal: FC<Props> = observer((props) => {
     if (typeof formData.emoji_and_icon === "object") payload.icon_prop = formData.emoji_and_icon;
     else payload.emoji = formData.emoji_and_icon;
 
-    payload.project_lead = formData.project_lead_member?.member.id;
+    payload.project_lead = formData.project_lead_member;
 
     return projectStore
       .createProject(workspaceSlug.toString(), payload)
       .then((res) => {
+        const newPayload = {
+          ...payload,
+          id: res.id
+        }
+        trackEvent(
+          "CREATE_PROJECT",
+          newPayload,
+        )
         setToastAlert({
           type: "success",
           title: "Success!",
@@ -186,7 +196,7 @@ export const CreateProjectModal: FC<Props> = observer((props) => {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-custom-backdrop bg-opacity-50 transition-opacity" />
+          <div className="fixed inset-0 bg-custom-backdrop transition-opacity" />
         </Transition.Child>
 
         <div className="fixed inset-0 z-20 overflow-y-auto">
@@ -200,7 +210,7 @@ export const CreateProjectModal: FC<Props> = observer((props) => {
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="transform rounded-lg bg-custom-background-100 text-left shadow-xl transition-all p-3 w-full sm:w-3/5 lg:w-1/2 xl:w-2/5">
+              <Dialog.Panel className="transform rounded-lg bg-custom-background-100 text-left shadow-custom-shadow-md transition-all p-3 w-full sm:w-3/5 lg:w-1/2 xl:w-2/5">
                 <div className="group relative h-44 w-full rounded-lg bg-custom-background-80">
                   {watch("cover_image") !== null && (
                     <img
@@ -211,7 +221,7 @@ export const CreateProjectModal: FC<Props> = observer((props) => {
                   )}
 
                   <div className="absolute right-2 top-2 p-2">
-                    <button type="button" onClick={handleClose}>
+                    <button data-posthog="PROJECT_MODAL_CLOSE" type="button" onClick={handleClose}>
                       <X className="h-5 w-5 text-white" />
                     </button>
                   </div>
@@ -370,7 +380,7 @@ export const CreateProjectModal: FC<Props> = observer((props) => {
                           control={control}
                           render={({ field: { value, onChange } }) => (
                             <WorkspaceMemberSelect
-                              value={value}
+                              value={workspaceMembers?.filter((member: IWorkspaceMember) => member.member.id ===value)[0]}
                               onChange={onChange}
                               options={workspaceMembers || []}
                               placeholder="Select Lead"
@@ -382,7 +392,7 @@ export const CreateProjectModal: FC<Props> = observer((props) => {
                   </div>
 
                   <div className="flex justify-end gap-2 pt-5">
-                    <Button variant="neutral-primary" onClick={handleClose} tabIndex={6}>
+                    <Button variant="neutral-primary" size="sm" onClick={handleClose} tabIndex={6}>
                       Cancel
                     </Button>
                     <Button variant="primary" type="submit" size="sm" loading={isSubmitting} tabIndex={7}>

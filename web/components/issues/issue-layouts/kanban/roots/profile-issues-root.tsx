@@ -13,6 +13,7 @@ import { Spinner } from "@plane/ui";
 import { ISSUE_STATE_GROUPS, ISSUE_PRIORITIES } from "constants/issue";
 // types
 import { IIssue } from "types";
+import { EIssueActions } from "../../types";
 
 export interface IProfileIssuesKanBanLayout {}
 
@@ -20,6 +21,7 @@ export const ProfileIssuesKanBanLayout: FC = observer(() => {
   const {
     workspace: workspaceStore,
     project: projectStore,
+    projectMember: { projectMembers },
     projectState: projectStateStore,
     profileIssues: profileIssuesStore,
     profileIssueFilters: profileIssueFiltersStore,
@@ -48,9 +50,9 @@ export const ProfileIssuesKanBanLayout: FC = observer(() => {
 
   const [isDragStarted, setIsDragStarted] = useState<boolean>(false);
 
-  const onDragStart = () => {
-    setIsDragStarted(true);
-  };
+  // const onDragStart = () => {
+  //   setIsDragStarted(true);
+  // };
 
   const onDragEnd = (result: any) => {
     setIsDragStarted(false);
@@ -70,14 +72,14 @@ export const ProfileIssuesKanBanLayout: FC = observer(() => {
   };
 
   const handleIssues = useCallback(
-    (sub_group_by: string | null, group_by: string | null, issue: IIssue, action: "update" | "delete") => {
+    (sub_group_by: string | null, group_by: string | null, issue: IIssue, action: EIssueActions) => {
       if (!workspaceSlug) return;
 
-      if (action === "update") {
+      if (action === EIssueActions.UPDATE) {
         profileIssuesStore.updateIssueStructure(group_by, sub_group_by, issue);
         issueDetailStore.updateIssue(workspaceSlug.toString(), issue.project, issue.id, issue);
       }
-      if (action === "delete") profileIssuesStore.deleteIssue(group_by, sub_group_by, issue);
+      if (action === EIssueActions.DELETE) profileIssuesStore.deleteIssue(group_by, sub_group_by, issue);
     },
     [profileIssuesStore, issueDetailStore, workspaceSlug]
   );
@@ -89,7 +91,6 @@ export const ProfileIssuesKanBanLayout: FC = observer(() => {
   const states = projectStateStore?.projectStates || null;
   const priorities = ISSUE_PRIORITIES || null;
   const labels = workspaceStore.workspaceLabels || null;
-  const members = projectStore?.projectMembers || null;
   const stateGroups = ISSUE_STATE_GROUPS || null;
   const projects = projectStore?.workspaceProjects || null;
 
@@ -104,7 +105,8 @@ export const ProfileIssuesKanBanLayout: FC = observer(() => {
           <DragDropContext onDragEnd={onDragEnd}>
             {currentKanBanView === "default" ? (
               <KanBan
-                issues={issues}
+                issues={{}}
+                issueIds={[]}
                 sub_group_by={sub_group_by}
                 group_by={group_by}
                 order_by={order_by}
@@ -112,8 +114,8 @@ export const ProfileIssuesKanBanLayout: FC = observer(() => {
                 quickActions={(sub_group_by, group_by, issue) => (
                   <ProjectIssueQuickActions
                     issue={issue}
-                    handleDelete={async () => handleIssues(sub_group_by, group_by, issue, "delete")}
-                    handleUpdate={async (data) => handleIssues(sub_group_by, group_by, data, "update")}
+                    handleDelete={async () => handleIssues(sub_group_by, group_by, issue, EIssueActions.DELETE)}
+                    handleUpdate={async (data) => handleIssues(sub_group_by, group_by, data, EIssueActions.UPDATE)}
                   />
                 )}
                 displayProperties={displayProperties}
@@ -123,14 +125,15 @@ export const ProfileIssuesKanBanLayout: FC = observer(() => {
                 stateGroups={stateGroups}
                 priorities={priorities}
                 labels={labels}
-                members={members?.map((m) => m.member) ?? null}
+                members={projectMembers?.map((m) => m.member) ?? null}
                 projects={projects}
                 showEmptyGroup={userDisplayFilters?.show_empty_groups || true}
                 isDragStarted={isDragStarted}
               />
             ) : (
               <KanBanSwimLanes
-                issues={issues}
+                issues={{}}
+                issueIds={[]}
                 sub_group_by={sub_group_by}
                 group_by={group_by}
                 order_by={order_by}
@@ -138,8 +141,8 @@ export const ProfileIssuesKanBanLayout: FC = observer(() => {
                 quickActions={(sub_group_by, group_by, issue) => (
                   <ProjectIssueQuickActions
                     issue={issue}
-                    handleDelete={async () => handleIssues(sub_group_by, group_by, issue, "delete")}
-                    handleUpdate={async (data) => handleIssues(sub_group_by, group_by, data, "update")}
+                    handleDelete={async () => handleIssues(sub_group_by, group_by, issue, EIssueActions.DELETE)}
+                    handleUpdate={async (data) => handleIssues(sub_group_by, group_by, data, EIssueActions.UPDATE)}
                   />
                 )}
                 displayProperties={displayProperties}
@@ -149,7 +152,7 @@ export const ProfileIssuesKanBanLayout: FC = observer(() => {
                 stateGroups={stateGroups}
                 priorities={priorities}
                 labels={labels}
-                members={members?.map((m) => m.member) ?? null}
+                members={projectMembers?.map((m) => m.member) ?? null}
                 projects={projects}
                 showEmptyGroup={userDisplayFilters?.show_empty_groups || true}
                 isDragStarted={isDragStarted}

@@ -1,12 +1,9 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
-import useSWR, { mutate } from "swr";
+import { mutate } from "swr";
 import { observer } from "mobx-react-lite";
+// mobx store
 import { useMobxStore } from "lib/mobx/store-provider";
-// services
-import { ProjectInvitationService } from "services/project";
-// hooks
-import useUser from "hooks/use-user";
 // components
 import { ProjectMemberListItem, SendProjectInvitationModal } from "components/project";
 // ui
@@ -14,63 +11,24 @@ import { Button, Loader } from "@plane/ui";
 // icons
 import { Search } from "lucide-react";
 
-// services
-const projectInvitationService = new ProjectInvitationService();
-
 export const ProjectMemberList: React.FC = observer(() => {
   // router
   const router = useRouter();
   const { workspaceSlug, projectId } = router.query;
 
   // store
-  const { project: projectStore } = useMobxStore();
+  const {
+    projectMember: { projectMembers, fetchProjectMembers },
+  } = useMobxStore();
 
   // states
   const [inviteModal, setInviteModal] = useState(false);
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const { user } = useUser();
+  const searchedMembers = (projectMembers ?? []).filter((member) => {
+    const fullName = `${member.member.first_name} ${member.member.last_name}`.toLowerCase();
+    const displayName = member.member.display_name.toLowerCase();
 
-  const { data: projectInvitations } = useSWR(
-    workspaceSlug && projectId ? `PROJECT_INVITATIONS_${projectId.toString()}` : null,
-    workspaceSlug && projectId
-      ? () => projectInvitationService.fetchProjectInvitations(workspaceSlug.toString(), projectId.toString())
-      : null
-  );
-
-  // derived values
-  const projectMembers = projectStore.projectMembers;
-
-  const members = [
-    ...(projectMembers?.map((item) => ({
-      id: item.id,
-      memberId: item.member?.id,
-      avatar: item.member?.avatar,
-      first_name: item.member?.first_name,
-      last_name: item.member?.last_name,
-      email: item.member?.email,
-      display_name: item.member?.display_name,
-      role: item.role,
-      status: true,
-      member: true,
-    })) || []),
-    ...(projectInvitations?.map((item: any) => ({
-      id: item.id,
-      memberId: item.id,
-      avatar: item.avatar ?? "",
-      first_name: item.first_name ?? item.email,
-      last_name: item.last_name ?? "",
-      email: item.email,
-      display_name: item.email,
-      role: item.role,
-      status: item.accepted,
-      member: false,
-    })) || []),
-  ];
-
-  const searchedMembers = members?.filter((member) => {
-    const fullName = `${member.first_name} ${member.last_name}`.toLowerCase();
-    const displayName = member.display_name.toLowerCase();
     return displayName.includes(searchQuery.toLowerCase()) || fullName.includes(searchQuery.toLowerCase());
   });
 
@@ -78,12 +36,11 @@ export const ProjectMemberList: React.FC = observer(() => {
     <>
       <SendProjectInvitationModal
         isOpen={inviteModal}
-        setIsOpen={setInviteModal}
-        members={members}
-        user={user}
+        members={projectMembers ?? []}
+        onClose={() => setInviteModal(false)}
         onSuccess={() => {
           mutate(`PROJECT_INVITATIONS_${projectId?.toString()}`);
-          projectStore.fetchProjectMembers(workspaceSlug?.toString()!, projectId?.toString()!);
+          fetchProjectMembers(workspaceSlug?.toString()!, projectId?.toString()!);
         }}
       />
 
@@ -95,7 +52,7 @@ export const ProjectMemberList: React.FC = observer(() => {
             className="max-w-[234px] w-full border-none bg-transparent text-sm focus:outline-none"
             placeholder="Search"
             value={searchQuery}
-            autoFocus={true}
+            autoFocus
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
@@ -103,7 +60,7 @@ export const ProjectMemberList: React.FC = observer(() => {
           Add Member
         </Button>
       </div>
-      {!projectMembers || !projectInvitations ? (
+      {!projectMembers ? (
         <Loader className="space-y-5">
           <Loader.Item height="40px" />
           <Loader.Item height="40px" />
@@ -112,7 +69,7 @@ export const ProjectMemberList: React.FC = observer(() => {
         </Loader>
       ) : (
         <div className="divide-y divide-custom-border-100">
-          {members.length > 0
+          {projectMembers.length > 0
             ? searchedMembers.map((member) => <ProjectMemberListItem key={member.id} member={member} />)
             : null}
           {searchedMembers.length === 0 && (

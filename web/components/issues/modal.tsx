@@ -39,12 +39,21 @@ export interface IssuesModalProps {
     | "cycle"
   )[];
   onSubmit?: (data: Partial<IIssue>) => Promise<void>;
+  handleSubmit?: (data: Partial<IIssue>) => Promise<void>;
 }
 
 const issueDraftService = new IssueDraftService();
 
 export const CreateUpdateIssueModal: React.FC<IssuesModalProps> = observer((props) => {
-  const { data, handleClose, isOpen, prePopulateData: prePopulateDataProps, fieldsToShow = ["all"], onSubmit } = props;
+  const {
+    data,
+    handleClose,
+    isOpen,
+    prePopulateData: prePopulateDataProps,
+    fieldsToShow = ["all"],
+    onSubmit,
+    handleSubmit,
+  } = props;
 
   // states
   const [createMore, setCreateMore] = useState(false);
@@ -186,18 +195,22 @@ export const CreateUpdateIssueModal: React.FC<IssuesModalProps> = observer((prop
     await issueDetailStore
       .createIssue(workspaceSlug.toString(), activeProject, payload)
       .then(async (res) => {
-        issueStore.fetchIssues(workspaceSlug.toString(), activeProject);
+        if (handleSubmit) {
+          await handleSubmit(res);
+        } else {
+          issueStore.fetchIssues(workspaceSlug.toString(), activeProject);
 
-        if (payload.cycle && payload.cycle !== "") await addIssueToCycle(res.id, payload.cycle);
-        if (payload.module && payload.module !== "") await addIssueToModule(res.id, payload.module);
+          if (payload.cycle && payload.cycle !== "") await addIssueToCycle(res.id, payload.cycle);
+          if (payload.module && payload.module !== "") await addIssueToModule(res.id, payload.module);
 
-        setToastAlert({
-          type: "success",
-          title: "Success!",
-          message: "Issue created successfully.",
-        });
+          setToastAlert({
+            type: "success",
+            title: "Success!",
+            message: "Issue created successfully.",
+          });
 
-        if (payload.parent && payload.parent !== "") mutate(SUB_ISSUES(payload.parent));
+          if (payload.parent && payload.parent !== "") mutate(SUB_ISSUES(payload.parent));
+        }
       })
       .catch(() => {
         setToastAlert({
@@ -310,10 +323,10 @@ export const CreateUpdateIssueModal: React.FC<IssuesModalProps> = observer((prop
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-custom-backdrop bg-opacity-50 transition-opacity" />
+            <div className="fixed inset-0 bg-custom-backdrop transition-opacity" />
           </Transition.Child>
 
-          <div className="fixed inset-0 z-10 overflow-y-auto">
+          <div className="fixed inset-0 z-20 overflow-y-auto">
             <div className="my-10 flex items-center justify-center p-4 text-center sm:p-0 md:my-20">
               <Transition.Child
                 as={React.Fragment}
@@ -324,7 +337,7 @@ export const CreateUpdateIssueModal: React.FC<IssuesModalProps> = observer((prop
                 leaveFrom="opacity-100 translate-y-0 sm:scale-100"
                 leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
               >
-                <Dialog.Panel className="relative transform rounded-lg border border-custom-border-200 bg-custom-background-100 p-5 text-left shadow-xl transition-all sm:w-full mx-4 sm:max-w-4xl">
+                <Dialog.Panel className="relative transform rounded-lg bg-custom-background-100 p-5 text-left shadow-custom-shadow-md transition-all sm:w-full mx-4 sm:max-w-4xl">
                   <IssueForm
                     handleFormSubmit={handleFormSubmit}
                     initialData={data ?? prePopulateData}

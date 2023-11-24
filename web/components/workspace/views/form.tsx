@@ -114,7 +114,7 @@ export const WorkspaceViewForm: React.FC<Props> = observer((props) => {
                   value={value}
                   placeholder="Description"
                   onChange={onChange}
-                  className="h-32 resize-none text-sm"
+                  className="h-24 w-full resize-none text-sm"
                   hasError={Boolean(errors?.description)}
                 />
               )}
@@ -169,10 +169,10 @@ export const WorkspaceViewForm: React.FC<Props> = observer((props) => {
         </div>
       </div>
       <div className="mt-5 flex justify-end gap-2">
-        <Button variant="neutral-primary" onClick={handleClose}>
+        <Button variant="neutral-primary" size="sm" onClick={handleClose}>
           Cancel
         </Button>
-        <Button variant="primary" type="submit" loading={isSubmitting}>
+        <Button variant="primary" size="sm" type="submit" loading={isSubmitting}>
           {data
             ? isSubmitting
               ? "Updating View..."

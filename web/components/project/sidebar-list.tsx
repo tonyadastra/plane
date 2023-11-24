@@ -26,16 +26,17 @@ export const ProjectSidebarList: FC = observer(() => {
   // refs
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const { theme: themeStore, project: projectStore, commandPalette: commandPaletteStore } = useMobxStore();
+  const {
+    theme: { sidebarCollapsed },
+    project: { joinedProjects, favoriteProjects, orderProjectsWithSortOrder, updateProjectView },
+    commandPalette: { toggleCreateProjectModal },
+  } = useMobxStore();
   // router
   const router = useRouter();
   const { workspaceSlug } = router.query;
 
   // toast
   const { setToastAlert } = useToast();
-
-  const joinedProjects = workspaceSlug && projectStore.joinedProjects;
-  const favoriteProjects = workspaceSlug && projectStore.favoriteProjects;
 
   const orderedJoinedProjects: IProject[] | undefined = joinedProjects
     ? orderArrayBy(joinedProjects, "sort_order", "ascending")
@@ -62,20 +63,18 @@ export const ProjectSidebarList: FC = observer(() => {
 
     if (source.index === destination.index) return;
 
-    const updatedSortOrder = projectStore.orderProjectsWithSortOrder(source.index, destination.index, draggableId);
+    const updatedSortOrder = orderProjectsWithSortOrder(source.index, destination.index, draggableId);
 
-    projectStore
-      .updateProjectView(workspaceSlug.toString(), draggableId, { sort_order: updatedSortOrder })
-      .catch(() => {
-        setToastAlert({
-          type: "error",
-          title: "Error!",
-          message: "Something went wrong. Please try again.",
-        });
+    updateProjectView(workspaceSlug.toString(), draggableId, { sort_order: updatedSortOrder }).catch(() => {
+      setToastAlert({
+        type: "error",
+        title: "Error!",
+        message: "Something went wrong. Please try again.",
       });
+    });
   };
 
-  const isCollapsed = themeStore.sidebarCollapsed || false;
+  const isCollapsed = sidebarCollapsed || false;
 
   /**
    * Implementing scroll animation styles based on the scroll length of the container
@@ -149,29 +148,38 @@ export const ProjectSidebarList: FC = observer(() => {
                             </button>
                           </div>
                         )}
-                        <Disclosure.Panel as="div" className="space-y-2">
-                          {orderedFavProjects.map((project, index) => (
-                            <Draggable
-                              key={project.id}
-                              draggableId={project.id}
-                              index={index}
-                              isDragDisabled={!project.is_member}
-                            >
-                              {(provided, snapshot) => (
-                                <div ref={provided.innerRef} {...provided.draggableProps}>
-                                  <ProjectSidebarListItem
-                                    key={project.id}
-                                    project={project}
-                                    provided={provided}
-                                    snapshot={snapshot}
-                                    handleCopyText={() => handleCopyText(project.id)}
-                                    shortContextMenu
-                                  />
-                                </div>
-                              )}
-                            </Draggable>
-                          ))}
-                        </Disclosure.Panel>
+                        <Transition
+                          enter="transition duration-100 ease-out"
+                          enterFrom="transform scale-95 opacity-0"
+                          enterTo="transform scale-100 opacity-100"
+                          leave="transition duration-75 ease-out"
+                          leaveFrom="transform scale-100 opacity-100"
+                          leaveTo="transform scale-95 opacity-0"
+                        >
+                          <Disclosure.Panel as="div" className="space-y-2">
+                            {orderedFavProjects.map((project, index) => (
+                              <Draggable
+                                key={project.id}
+                                draggableId={project.id}
+                                index={index}
+                                isDragDisabled={!project.is_member}
+                              >
+                                {(provided, snapshot) => (
+                                  <div ref={provided.innerRef} {...provided.draggableProps}>
+                                    <ProjectSidebarListItem
+                                      key={project.id}
+                                      project={project}
+                                      provided={provided}
+                                      snapshot={snapshot}
+                                      handleCopyText={() => handleCopyText(project.id)}
+                                      shortContextMenu
+                                    />
+                                  </div>
+                                )}
+                              </Draggable>
+                            ))}
+                          </Disclosure.Panel>
+                        </Transition>
                         {provided.placeholder}
                       </>
                     )}
@@ -254,7 +262,7 @@ export const ProjectSidebarList: FC = observer(() => {
           <button
             type="button"
             className="flex w-full items-center gap-2 px-3 text-sm text-custom-sidebar-text-200"
-            onClick={() => commandPaletteStore.toggleCreateProjectModal(true)}
+            onClick={() => toggleCreateProjectModal(true)}
           >
             <Plus className="h-5 w-5" />
             {!isCollapsed && "Add Project"}

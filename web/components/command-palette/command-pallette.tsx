@@ -4,7 +4,6 @@ import useSWR from "swr";
 import { observer } from "mobx-react-lite";
 // hooks
 import useToast from "hooks/use-toast";
-import useUser from "hooks/use-user";
 // components
 import { CommandModal, ShortcutsModal } from "components/command-palette";
 import { BulkDeleteIssuesModal } from "components/core";
@@ -30,9 +29,12 @@ export const CommandPalette: FC = observer(() => {
   const router = useRouter();
   const { workspaceSlug, projectId, issueId, cycleId, moduleId } = router.query;
   // store
-  const { commandPalette, theme: themeStore } = useMobxStore();
   const {
-    isCommandPaletteOpen,
+    commandPalette,
+    theme: { toggleSidebar },
+    user: { currentUser },
+  } = useMobxStore();
+  const {
     toggleCommandPaletteModal,
     isCreateIssueModalOpen,
     toggleCreateIssueModal,
@@ -53,9 +55,6 @@ export const CommandPalette: FC = observer(() => {
     isDeleteIssueModalOpen,
     toggleDeleteIssueModal,
   } = commandPalette;
-  const { toggleSidebar } = themeStore;
-
-  const { user } = useUser();
 
   const { setToastAlert } = useToast();
 
@@ -154,12 +153,7 @@ export const CommandPalette: FC = observer(() => {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
-  if (!user) return null;
-
-  const deleteIssue = () => {
-    toggleCommandPaletteModal(false);
-    toggleDeleteIssueModal(true);
-  };
+  if (!currentUser) return null;
 
   return (
     <>
@@ -203,8 +197,6 @@ export const CommandPalette: FC = observer(() => {
           <CreateUpdatePageModal
             isOpen={isCreatePageModalOpen}
             handleClose={() => toggleCreatePageModal(false)}
-            user={user}
-            workspaceSlug={workspaceSlug.toString()}
             projectId={projectId.toString()}
           />
         </>
@@ -231,15 +223,9 @@ export const CommandPalette: FC = observer(() => {
         onClose={() => {
           toggleBulkDeleteIssueModal(false);
         }}
-        user={user}
+        user={currentUser}
       />
-      <CommandModal
-        deleteIssue={deleteIssue}
-        isPaletteOpen={isCommandPaletteOpen}
-        closePalette={() => {
-          toggleCommandPaletteModal(false);
-        }}
-      />
+      <CommandModal />
     </>
   );
 });

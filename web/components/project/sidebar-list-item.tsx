@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { DraggableProvided, DraggableStateSnapshot } from "@hello-pangea/dnd";
@@ -10,12 +10,12 @@ import {
   PenSquare,
   LinkIcon,
   Star,
-  Trash2,
   FileText,
   Settings,
   Share2,
   LogOut,
   ChevronDown,
+  MoreHorizontal,
 } from "lucide-react";
 // hooks
 import useToast from "hooks/use-toast";
@@ -27,7 +27,8 @@ import { IProject } from "types";
 import { useMobxStore } from "lib/mobx/store-provider";
 // components
 import { CustomMenu, Tooltip, ArchiveIcon, PhotoFilterIcon, DiceIcon, ContrastIcon, LayersIcon } from "@plane/ui";
-import { LeaveProjectModal, DeleteProjectModal, PublishProjectModal } from "components/project";
+import { LeaveProjectModal, PublishProjectModal } from "components/project";
+import useOutsideClickDetector from "hooks/use-outside-click-detector";
 
 type Props = {
   project: IProject;
@@ -71,6 +72,7 @@ const navigation = (workspaceSlug: string, projectId: string) => [
 ];
 
 export const ProjectSidebarListItem: React.FC<Props> = observer((props) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { project, provided, snapshot, handleCopyText, shortContextMenu = false } = props;
   // store
   const { project: projectStore, theme: themeStore } = useMobxStore();
@@ -81,13 +83,15 @@ export const ProjectSidebarListItem: React.FC<Props> = observer((props) => {
   const { setToastAlert } = useToast();
   // states
   const [leaveProjectModalOpen, setLeaveProjectModal] = useState(false);
-  const [deleteProjectModalOpen, setDeleteProjectModal] = useState(false);
   const [publishModalOpen, setPublishModal] = useState(false);
+  const [isMenuActive, setIsMenuActive] = useState(false);
 
   const isAdmin = project.member_role === 20;
   const isViewerOrGuest = project.member_role === 10 || project.member_role === 5;
 
   const isCollapsed = themeStore.sidebarCollapsed;
+
+  const actionSectionRef = useRef<HTMLDivElement | null>(null);
 
   const handleAddToFavorites = () => {
     if (!workspaceSlug) return;
@@ -121,27 +125,19 @@ export const ProjectSidebarListItem: React.FC<Props> = observer((props) => {
     setLeaveProjectModal(false);
   };
 
-  const handleDeleteProjectClick = () => {
-    setDeleteProjectModal(true);
-  };
-
-  const handleDeleteProjectModalClose = () => {
-    setDeleteProjectModal(false);
-    router.push(`/${workspaceSlug}/projects`);
-  };
+  useOutsideClickDetector(actionSectionRef, () => setIsMenuActive(false));
 
   return (
     <>
       <PublishProjectModal isOpen={publishModalOpen} project={project} onClose={() => setPublishModal(false)} />
-      <DeleteProjectModal project={project} isOpen={deleteProjectModalOpen} onClose={handleDeleteProjectModalClose} />
       <LeaveProjectModal project={project} isOpen={leaveProjectModalOpen} onClose={handleLeaveProjectModalClose} />
-      <Disclosure key={project.id} defaultOpen={projectId === project.id}>
+      <Disclosure key={`${project.id} ${projectId}`} defaultOpen={projectId === project.id}>
         {({ open }) => (
           <>
             <div
               className={`group relative text-custom-sidebar-text-10 px-2 py-1 w-full flex items-center hover:bg-custom-sidebar-background-80 rounded-md ${
                 snapshot?.isDragging ? "opacity-60" : ""
-              }`}
+              } ${isMenuActive ? "!bg-custom-sidebar-background-80" : ""}`}
             >
               {provided && (
                 <Tooltip
@@ -152,7 +148,9 @@ export const ProjectSidebarListItem: React.FC<Props> = observer((props) => {
                     type="button"
                     className={`absolute top-1/2 -translate-y-1/2 -left-2.5 hidden rounded p-0.5 text-custom-sidebar-text-400 ${
                       isCollapsed ? "" : "group-hover:!flex"
-                    } ${project.sort_order === null ? "opacity-60 cursor-not-allowed" : ""}`}
+                    } ${project.sort_order === null ? "opacity-60 cursor-not-allowed" : ""} ${
+                      isMenuActive ? "!flex" : ""
+                    }`}
                     {...provided?.dragHandleProps}
                   >
                     <MoreVertical className="h-3.5" />
@@ -186,15 +184,13 @@ export const ProjectSidebarListItem: React.FC<Props> = observer((props) => {
                       </span>
                     )}
 
-                    {!isCollapsed && (
-                      <p className={`truncate ${open ? "" : "text-custom-sidebar-text-200"}`}>{project.name}</p>
-                    )}
+                    {!isCollapsed && <p className="truncate text-custom-sidebar-text-200">{project.name}</p>}
                   </div>
                   {!isCollapsed && (
                     <ChevronDown
-                      className={`h-4 w-4 flex-shrink-0 ${
-                        open ? "rotate-180" : ""
-                      } !hidden group-hover:!block text-custom-sidebar-text-400 duration-300`}
+                      className={`h-4 w-4 flex-shrink-0 hidden ${open ? "rotate-180" : ""} ${
+                        isMenuActive ? "!block" : ""
+                      }  group-hover:!block mb-0.5 text-custom-sidebar-text-400 duration-300`}
                     />
                   )}
                 </Disclosure.Button>
@@ -202,7 +198,16 @@ export const ProjectSidebarListItem: React.FC<Props> = observer((props) => {
 
               {!isCollapsed && (
                 <CustomMenu
-                  className="hidden group-hover:block flex-shrink-0"
+                  customButton={
+                    <div
+                      ref={actionSectionRef}
+                      className="w-full cursor-pointer text-custom-sidebar-text-400 px-1 mt-1.5 my-auto duration-300"
+                      onClick={() => setIsMenuActive(!isMenuActive)}
+                    >
+                      <MoreHorizontal className="h-3.5 w-3.5" />
+                    </div>
+                  }
+                  className={`hidden group-hover:block flex-shrink-0 ${isMenuActive ? "!block" : ""}`}
                   buttonClassName="!text-custom-sidebar-text-400 hover:text-custom-sidebar-text-400"
                   ellipsis
                   placement="bottom-start"
@@ -218,7 +223,7 @@ export const ProjectSidebarListItem: React.FC<Props> = observer((props) => {
                   {project.is_favorite && (
                     <CustomMenu.MenuItem onClick={handleRemoveFromFavorites}>
                       <span className="flex items-center justify-start gap-2">
-                        <Star className="h-3.5 w-3.5 stroke-[1.5] text-orange-400" fill="#f6ad55" />
+                        <Star className="h-3.5 w-3.5 stroke-[1.5] text-orange-400 fill-orange-400" />
                         <span>Remove from favorites</span>
                       </span>
                     </CustomMenu.MenuItem>
@@ -278,15 +283,6 @@ export const ProjectSidebarListItem: React.FC<Props> = observer((props) => {
                       </div>
                     </CustomMenu.MenuItem>
                   )}
-
-                  {!shortContextMenu && isAdmin && (
-                    <CustomMenu.MenuItem onClick={handleDeleteProjectClick}>
-                      <span className="flex items-center justify-start gap-2 ">
-                        <Trash2 className="h-3.5 w-3.5 stroke-[1.5]" />
-                        <span>Delete project</span>
-                      </span>
-                    </CustomMenu.MenuItem>
-                  )}
                 </CustomMenu>
               )}
             </div>
@@ -322,7 +318,7 @@ export const ProjectSidebarListItem: React.FC<Props> = observer((props) => {
                             className={`group flex items-center rounded-md px-2 py-1.5 gap-2.5 text-xs font-medium outline-none ${
                               router.asPath.includes(item.href)
                                 ? "bg-custom-primary-100/10 text-custom-primary-100"
-                                : "text-custom-sidebar-text-200 hover:bg-custom-sidebar-background-80 focus:bg-custom-sidebar-background-80"
+                                : "text-custom-sidebar-text-300 hover:bg-custom-sidebar-background-80 focus:bg-custom-sidebar-background-80"
                             } ${isCollapsed ? "justify-center" : ""}`}
                           >
                             <item.Icon className="h-4 w-4 stroke-[1.5]" />
