@@ -21,7 +21,7 @@ export interface IssuesModalProps {
 }
 
 export const ProjectIssueModal: React.FC<IssuesModalProps> = observer((props) => {
-  const { data, isOpen, onClose, withDraftIssueWrapper } = props;
+  const { data, isOpen, onClose, withDraftIssueWrapper = true } = props;
 
   const [changesMade, setChangesMade] = useState<Partial<IIssue> | null>(null);
 
