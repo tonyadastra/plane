@@ -11,7 +11,7 @@ type Props = {
 
 export const IssuesPieChart: React.FC<Props> = ({ groupedIssues }) => (
   <div>
-    <h3 className="mb-2 font-semibold">Issues by States</h3>
+    <h3 className="mb-2 font-semibold">Issues by states</h3>
     <div className="rounded-[10px] border border-custom-border-200 bg-custom-background-100 p-4">
       <div className="grid grid-cols-1 sm:grid-cols-4">
         <div className="sm:col-span-3">

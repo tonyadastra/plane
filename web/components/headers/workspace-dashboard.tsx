@@ -2,17 +2,16 @@ import { useState } from "react";
 import { LayoutGrid, Zap } from "lucide-react";
 import Image from "next/image";
 import { useTheme } from "next-themes";
-// images
-import githubBlackImage from "/public/logos/github-black.png";
-import githubWhiteImage from "/public/logos/github-white.png";
 // components
 import { ProductUpdatesModal } from "components/common";
+// ui
 import { Breadcrumbs } from "@plane/ui";
-import { useMobxStore } from "lib/mobx/store-provider";
+// assetsˀ
+import githubBlackImage from "/public/logos/github-black.png";
+import githubWhiteImage from "/public/logos/github-white.png";
 
 export const WorkspaceDashboardHeader = () => {
   const [isProductUpdatesModalOpen, setIsProductUpdatesModalOpen] = useState(false);
-  const { trackEvent: { postHogEventTracker } } = useMobxStore();
   // theme
   const { resolvedTheme } = useTheme();
 
@@ -39,7 +38,7 @@ export const WorkspaceDashboardHeader = () => {
             className="flex items-center gap-1.5 bg-custom-background-80 text-xs font-medium py-1.5 px-3 rounded flex-shrink-0"
           >
             <Zap size={14} strokeWidth={2} fill="rgb(var(--color-text-100))" />
-            {"What's New?"}
+            What{"'"}s new?
           </a>
           <a
             className="flex items-center gap-1.5 bg-custom-background-80 text-xs font-medium py-1.5 px-3 rounded flex-shrink-0"

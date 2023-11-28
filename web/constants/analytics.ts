@@ -60,7 +60,7 @@ export const ANALYTICS_X_AXIS_VALUES: { value: TXAxisValues; label: string }[] =
 export const ANALYTICS_Y_AXIS_VALUES: { value: TYAxisValues; label: string }[] = [
   {
     value: "issue_count",
-    label: "Issue Count",
+    label: "Issue count",
   },
   {
     value: "estimate",

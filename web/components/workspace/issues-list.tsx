@@ -34,7 +34,9 @@ export const IssuesList: React.FC<Props> = ({ issues, type }) => {
 
   return (
     <div>
-      <h3 className="mb-2 font-semibold capitalize">{type} Issues</h3>
+      <h3 className="mb-2 font-semibold">
+        <span className="capitalize">{type}</span> issues
+      </h3>
       {issues ? (
         <div className="h-[calc(100%-2.25rem)] rounded-[10px] border border-custom-border-200 bg-custom-background-100 p-4 text-sm">
           <div
@@ -44,7 +46,7 @@ export const IssuesList: React.FC<Props> = ({ issues, type }) => {
           >
             <h4 className="capitalize">{type}</h4>
             <h4 className="col-span-2">Issue</h4>
-            <h4>{type === "overdue" ? "Due" : "Start"} Date</h4>
+            <h4>{type === "overdue" ? "Due" : "Start"} date</h4>
           </div>
           <div className="max-h-72 overflow-y-scroll">
             {issues.length > 0 ? (
