@@ -34,7 +34,7 @@
     "@plane/editor-types": "*",
     "@plane/editor-extensions": "*",
     "@tiptap/extension-placeholder": "^2.1.11",
-    "lucide-react": "^0.244.0"
+    "lucide-react": "^0.293.0"
   },
   "devDependencies": {
     "@types/node": "18.15.3",
