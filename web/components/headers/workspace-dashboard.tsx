@@ -6,7 +6,7 @@ import { useTheme } from "next-themes";
 import { ProductUpdatesModal } from "components/common";
 // ui
 import { Breadcrumbs } from "@plane/ui";
-// assetsˀ
+// assets
 import githubBlackImage from "/public/logos/github-black.png";
 import githubWhiteImage from "/public/logos/github-white.png";
 
